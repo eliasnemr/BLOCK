@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
+  <title>Block</title>
+
+  <!-- CSS  -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+</head>
+<body>
+
+  <!-- Minima.js -->
+<script type="text/javascript">
+
+  window.addEventListener("load", function(){
+    window.addEventListener("MinimaEvent", function(evt){
+
+    //Deal with each message type
+		 		if(evt.detail.event == "connected"){
+          // get last 127 blocks 
+          get127Blocks();
+		 			// set last block
+          getBlock();
+			 	}else if(evt.detail.event == "newblock"){
+		 			// set last block
+          getBlock();			 		
+		 		}else if(evt.detail.event == "newbalance"){
+		 			//Set the Balance..
+			 		setBalance();
+		    }     
+    });
+    // init Minima
+    Minima.init();
+  });
+  // functions
+  function getBlock() {
+    document.getElementById('blocknumber').innerHTML = "Latest Block: <b>"+ Minima.block+"</b>";
+  }
+  function setBalance() {
+
+  }
+  let tip = "";
+  function get127Blocks() {
+    
+    Minima.cmd("status", function(resp) {
+      
+      tip = resp.response.tip;
+
+      // let's get the tip's parent
+      Minima.cmd("txpowinfo "+tip, function(res){
+        let parent = res.response.txpow.header.superparents[0].parent;
+        console.log(parent);
+      });
+    });
+         
+  }
+
+
+</script>
+
+  <nav class="minima-blue-bg lighten-1" role="navigation">
+    <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">BLOCK</a>
+      <ul class="right hide-on-med-and-down">
+        <li><a href="#">About</a></li>
+      </ul>
+  
+      <ul id="nav-mobile" class="sidenav">
+        <li><a href="#">about</a></li>
+      </ul>
+      <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    </div>
+  </nav>
+  <div class="section no-pad-bot" id="index-banner">
+    <div class="container">
+      <br><br>
+      <div class="row center">
+        <img style="width: 80px;" src="assets/icon.png">
+      </div>
+      <h1 class="header center minima-blue-txt" style="margin-top:0px;">BLOCK</h1>
+      <div class="row center">
+        <h5 class="header col s12 light">Minima's Block Explorer built for all your exploration needs.</h5>
+      </div>
+      <div class="container">
+        <div class="search-wrapper focused row center">
+          <input id="search" placeholder="Search by block number, TxPoW id or Minima Address">
+          <a href="http://materializecss.com/getting-started.html" id="download-button" class="btn-small waves-effect waves-light minima-orange-bg">Search</a>
+        </div>
+
+      <div class="row center light" id="blocknumber">
+      </div>
+      </div>
+      <br><br>
+      
+      <!-- Table for Blocks -->
+      <table class="responsive-table highlight">
+        <thead>
+          <tr>
+            <td>Height</td>
+            <td>Hash</td>
+            <td>Mined</td>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>  
+            <td>5003</td>
+            <td>0x4A4DECE9EBE2C524A1...</td>
+            <td>1 min ago</td>
+          </tr> 
+          <tr>  
+            <td>5002</td>
+            <td>0x4A4DECE9EBE2C524A1...</td>
+            <td>5 mins ago</td>
+          </tr> 
+          <tr>  
+            <td>5001</td>
+            <td>0x4A4DECE9EBE2C524A1...</td>
+            <td>10 mins ago</td>
+          </tr>
+
+           <!-- pagination for blocks -->
+          <ul class="pagination">
+          <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
+          <li class="active"><a href="#!">1</a></li>
+          <li class="waves-effect"><a href="#!">2</a></li>
+          <li class="waves-effect"><a href="#!">3</a></li>
+          <li class="waves-effect"><a href="#!">4</a></li>
+          <li class="waves-effect"><a href="#!">5</a></li>
+          <li class="waves-effect"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
+          </ul> 
+        </tbody>
+      </table>
+
+
+    <div class="section">
+    <div class="row">
+      <div class="col s12 m5">
+      <div class="card">
+        <div class="card-image">
+          <img src="assets/footer.jpg">
+          <span class="card-title">Minima invites all.  Become a validating node.</span>
+      </div>
+      <div class="card-action">
+        <a href="#">Become a Minima User.</a>
+      </div>
+      </div>
+      </div>
+    </div>
+    </div>
+
+
+  <div class="container">
+    <div class="section">
+
+      <!--   Icon Section   -->
+      <div class="row">
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">flash_on</i></h2>
+            <h5 class="center">Minima's Official Wallet</h5>
+
+            <p class="light">A complete Minima Core Wallet built for Minima Node V1.0.  Learn more <a href="#">here.</a></p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">group</i></h2>
+            <h5 class="center">MiniDAPP Community</h5>
+
+            <p class="light">Want to build your very own MiniDAPP?  By utilizing Minima's native scripting language, you can build ontop of the MiniDAPP stack.  Learn more <a href="#">here.</a></p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">settings</i></h2>
+            <h5 class="center">The Protocol</h5>
+
+            <p class="light">Minima is built in the perspective of keeping the chain truely decentralised as it scales.  Every user is a node.  Every node is mobile.  Learn more about the protocol <a href="#">here.</a></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <br><br>
+  </div>
+
+  <footer class="page-footer minima-grey-bg">
+    <div class="container">
+      <div class="row">
+        <div class="col l6 s12">
+          <div class="row center">
+          <img style="width: 80px;" src="assets/Minima.svg">
+          </div>
+          <p class="grey-text text-lighten-4">Block is built for Minima with the incentive of allowing you to explore its chain.  Discover the heaviest leaf in the chain and traverse through.</p>
+
+
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Settings</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Link 1</a></li>
+            <li><a class="white-text" href="#!">Link 2</a></li>
+            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="#!">Link 4</a></li>
+          </ul>
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Connect</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Link 1</a></li>
+            <li><a class="white-text" href="#!">Link 2</a></li>
+            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="#!">Link 4</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copyright minima-blue-bg">
+      <div class="container">
+      Made by <a class="orange-text text-lighten-3" href="#">the Minima Team</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!--  Scripts-->
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="js/bin/materialize.js"></script>
+  <script src="js/Minima/minima.js"></script>
+
+  </body>
+</html>
