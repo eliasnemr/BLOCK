@@ -20,6 +20,8 @@
 
     //Deal with each message type
 		 		if(evt.detail.event == "connected"){
+          // init SQL dB for blocks
+          createSQL();
           // get last 127 blocks 
           get127Blocks();
 		 			// set last block
@@ -37,25 +39,72 @@
   });
   // functions
   function getBlock() {
-    document.getElementById('blocknumber').innerHTML = "Latest Block: <b>"+ Minima.block+"</b>";
+    document.getElementById('blocknumber').innerHTML = "<b>"+ Minima.block+"</b>";
   }
   function setBalance() {
 
   }
-  let tip = "";
-  function get127Blocks() {
-    
-    Minima.cmd("status", function(resp) {
-      
-      tip = resp.response.tip;
 
+  let tip = "";let count = 0;var populateQuery = "INSERT INTO blocks (height, hash, relayed) VALUES ";
+  function get127Blocks() {
+
+    Minima.cmd("status", function(resp) {
+      if(count == 0){  
+        // get block header
+        tip = resp.response.tip;
+      }
+      count++;
       // let's get the tip's parent
       Minima.cmd("txpowinfo "+tip, function(res){
-        let parent = res.response.txpow.header.superparents[0].parent;
-        console.log(parent);
+        // get block header
+        tip = res.response.txpow.header.superparents[0].parent;
+        let height = res.response.txpow.header.block;
+        let relayed = res.response.txpow.header.date;
+
+        // callback
+        if(count <= 127){
+          populateBlocksSQLTable(height, tip, relayed);
+          get127Blocks();
+        } else {
+          return 0;
+        }
       });
+    }); 
+  }
+
+  // SQL to create the dB
+  var initSQL = "CREATE Table IF NOT EXISTS blocks ( height VARCHAR(160) NOT NULL, hash VARCHAR(160) NOT NULL, relayed VARCHAR(160) NOT NULL);"+
+                "SELECT * FROM blocks";
+  // Run command to create the SQL Database
+  function createSQL() {
+    Minima.sql(initSQL, function(resp){
+      if(!resp.status){
+        alert("Something went wrong with SQL DB+\n\n"+resp.message);
+        console.log(JSON.stringify(resp, null, 2));
+      }
     });
-         
+  }
+  // Get the recent last 128 blocks and populate local SQL IF they don't already exist
+  var checkQUERY = "SELECT COUNT(1) FROM blocks WHERE hash ="
+  function populateBlocksSQLTable(height, hash, relayed) {
+    // check if hash already exists, if not populate..
+    Minima.sql(checkQUERY+hash+")", function(resp){
+      // hash doesn't exist so update table
+      if(!resp.response.status){
+        // add to sql
+        Minima.sql(populateQuery+"('"+height+"','"+tip+"','"+relayed+"')", function(resp){
+          // something went wrong, stop
+          if(!resp.status){
+            alert("Something went wrong with SQL DB+\n\n"+resp.message);
+            console.log(JSON.stringify(resp, null, 2));
+          // otherwise insert..
+          } else {
+            console.log("Pushed new blocks");
+          }
+        });
+      }
+    });
+    
   }
 
 
@@ -80,17 +129,17 @@
         <img style="width: 80px;" src="assets/icon.png">
       </div>
       <h1 class="header center minima-blue-txt" style="margin-top:0px;">BLOCK</h1>
+        <!-- Block number -->
+        <div class="row center light" id="blocknumber">
+        </div>
       <div class="row center">
-        <h5 class="header col s12 light">Minima's Block Explorer built for all your exploration needs.</h5>
+        <h5 class="header col s12 light">Minima's Block Explorer built for all your exploration needs.</h5> 
       </div>
       <div class="container">
         <div class="search-wrapper focused row center">
           <input id="search" placeholder="Search by block number, TxPoW id or Minima Address">
-          <a href="http://materializecss.com/getting-started.html" id="download-button" class="btn-small waves-effect waves-light minima-orange-bg">Search</a>
+          <a href="#" id="download-button" class="btn-large waves-effect waves-light minima-orange-bg">Search</a>
         </div>
-
-      <div class="row center light" id="blocknumber">
-      </div>
       </div>
       <br><br>
       
@@ -134,22 +183,44 @@
         </tbody>
       </table>
     </div>
-
-
-    <div class="section">
+  </div>
+  
+    <div class="section hide-on-small-only show-on-large">
     <div class="row">
-      <div class="col s6 offset-s3">
-      <div class="card">
-        <div class="card-image">
-          <img src="assets/footer.jpg">
-          <span class="card-title">Minima invites all.  Become a validating node.</span>
-      </div>
-      <div class="card-action">
-        <a href="#">Become a Minima User.</a>
-      </div>
-      </div>
+        <div class="col s6 offset-s3">
+          <div class="card">
+            <div class="card-image">
+              <img src="assets/footer.jpg">
+              <span class="card-title">Minima invites all.  Become a validating node.</span>
+          </div>
+          <div class="card-content">
+              <p>Becoming a participitant in our network requires a quick installation on your native device.  Mobile, Desktop, Server or all.  Your choice.  Click below to join the network.</p>
+          </div>
+          <div class="card-action">
+            <a href="#">Become a Minima User.</a>
+          </div>
+        </div>
+        </div>
       </div>
     </div>
+
+    <div class="section hide-on-large-only">
+    <div class="row">
+        <div class="col s12 m7">
+          <div class="card">
+            <div class="card-image">
+              <img src="assets/footer.jpg">
+              <span class="card-title">Minima invites all.  Become a validating node.</span>
+          </div>
+          <div class="card-content">
+              <p>Becoming a participitant in our network is as easy as installing the app on any device you own and just running it.  That's all.  Click below to join the network.</p>
+          </div>
+          <div class="card-action">
+            <a href="#">Become a Minima User.</a>
+          </div>
+        </div>
+        </div>
+      </div>
     </div>
 
 
