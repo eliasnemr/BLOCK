@@ -22,13 +22,20 @@
 		 		if(evt.detail.event == "connected"){
           // init SQL dB for blocks
           createSQL();
-          // get last 127 blocks 
+          // get last 128 blocks 
           get127Blocks();
 		 			// set last block
           getBlock();
+
+          Minima.sql("SELECT * from blocks", function(res){
+            console.log(res);
+          });
 			 	}else if(evt.detail.event == "newblock"){
-		 			// set last block
-          getBlock();			 		
+		 			// set last block text
+          getBlock();
+
+          // update blocks
+          //updateBlocks();		 	
 		 		}else if(evt.detail.event == "newbalance"){
 		 			//Set the Balance..
 			 		setBalance();
@@ -63,7 +70,9 @@
 
         // callback
         if(count <= 127){
+          // populate with the retrieved header
           populateBlocksSQLTable(height, tip, relayed);
+          // callback
           get127Blocks();
         } else {
           return 0;
@@ -85,13 +94,16 @@
     });
   }
   // Get the recent last 128 blocks and populate local SQL IF they don't already exist
-  var checkQUERY = "SELECT COUNT(1) FROM blocks WHERE hash ="
+  var checkQUERY = "SELECT * FROM BLOCKS WHERE hash = '";
   function populateBlocksSQLTable(height, hash, relayed) {
     // check if hash already exists, if not populate..
-    Minima.sql(checkQUERY+hash+")", function(resp){
-      // hash doesn't exist so update table
-      if(!resp.response.status){
-        // add to sql
+    Minima.sql(checkQUERY+hash+"'", function(resp){
+
+      console.log(JSON.stringify(resp, null, 2));
+      
+      // check if block already exists
+      if(resp.status == true && resp.response.count == 0){
+        // add to sql 
         Minima.sql(populateQuery+"('"+height+"','"+tip+"','"+relayed+"')", function(resp){
           // something went wrong, stop
           if(!resp.status){
@@ -102,9 +114,26 @@
             console.log("Pushed new blocks");
           }
         });
+      } else {
+        console.log("Block already exists!");
       }
     });
-    
+  }
+
+  var dropTableQuery = "DROP TABLE blocks IF EXISTS;";
+  // delete min height, add new block to top of table
+  function updateBlocks() {
+    Minima.sql(dropTableQuery, function(res){
+       if(res.status){
+         Minima.cmd('status', function(res){
+           if(!res.status){
+             alert('Something went wrong retrieving status');
+           } else {
+             get127Blocks();
+           }
+         });
+       }
+    });
   }
 
 
