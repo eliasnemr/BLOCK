@@ -11,10 +11,8 @@
   <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
 </head>
 <body>
-
   <!-- Minima.js -->
 <script type="text/javascript">
-
   window.addEventListener("load", function(){
     window.addEventListener("MinimaEvent", function(evt){
 
@@ -22,20 +20,27 @@
 		 		if(evt.detail.event == "connected"){
           // init SQL dB for blocks
           createSQL();
-          // get last 128 blocks 
-          get127Blocks();
-		 			// set last block
+          // get last 128 blocks, if didn't already
+          Minima.sql('SELECT * FROM blocks', function(resp){
+            if(resp.response.count == 0){
+              get127Blocks();
+            }
+          });
+		 			// set last block text
           getBlock();
 
-          Minima.sql("SELECT * from blocks", function(res){
-            console.log(res);
-          });
+          // set blocks
+          appendData(); 
 			 	}else if(evt.detail.event == "newblock"){
 		 			// set last block text
           getBlock();
 
           // update blocks
-          //updateBlocks();		 	
+          //updateBlocks();
+
+          // show table
+          Minima.sql("SELECT * FROM blocks;");
+		 	
 		 		}else if(evt.detail.event == "newbalance"){
 		 			//Set the Balance..
 			 		setBalance();
@@ -47,9 +52,6 @@
   // functions
   function getBlock() {
     document.getElementById('blocknumber').innerHTML = "<b>"+ Minima.block+"</b>";
-  }
-  function setBalance() {
-
   }
 
   let tip = "";let count = 0;var populateQuery = "INSERT INTO blocks (height, hash, relayed) VALUES ";
@@ -71,7 +73,7 @@
         // callback
         if(count <= 127){
           // populate with the retrieved header
-          populateBlocksSQLTable(height, tip, relayed);
+           populateBlocksSQLTable(height, tip, relayed);
           // callback
           get127Blocks();
         } else {
@@ -120,21 +122,137 @@
     });
   }
 
-  var dropTableQuery = "DROP TABLE blocks IF EXISTS;";
+  var drop1query = "DELETE FROM blocks WHERE (SELECT MIN(height) as ROOT from blocks);"
   // delete min height, add new block to top of table
   function updateBlocks() {
-    Minima.sql(dropTableQuery, function(res){
-       if(res.status){
-         Minima.cmd('status', function(res){
-           if(!res.status){
-             alert('Something went wrong retrieving status');
-           } else {
-             get127Blocks();
-           }
-         });
-       }
+    // delete the 128th block
+    Minima.sql(drop1query, function(res){
+      console.log(JSON.stringify(res, null, 2));
+    });
+
+    // add tip to top 
+    Minima.cmd("status", function(resp) { 
+      // get block header
+      let tip = resp.response.tip;
+      let height = resp.response.lastblock;
+      let relayed = resp.response.lasttime; 
+      
+      populateBlocksSQLTable(height, tip, relayed);
+      
+      console.log("Blocks updated.");
     });
   }
+
+
+  var pullDataQuery = "SELECT * FROM blocks";
+  // append data to HTML
+  function appendData() {
+    Minima.sql(pullDataQuery, function(res){
+
+
+      // loop through the blocks
+      for(i = 0; i < res.response.count; i++){
+        // create a row to append to the blocks html table
+        var tr = document.createElement("tr");
+        // create a var for the table body
+        var tableBody = document.getElementById("tbody");
+
+        height = JSON.stringify(res.response.rows[i].HEIGHT);
+        hash = JSON.stringify(res.response.rows[i].HASH);
+        relayed = JSON.stringify(res.response.rows[i].RELAYED);
+
+        // format time to time from 
+        time = relayed.substring(25,30)+"-"+whatMonth(relayed.substring(5,8))+"-"+relayed.substring(9,11)+"T"+relayed.substring(12,17);
+        timeFrom = moment(time).fromNow();
+        // add cells to the row
+        tr.innerHTML = "<td>"+height.substring(1,4)+"</td>"+"<td>"+hash.substring(1, 131)+"</td>"+"<td>"+timeFrom+"</td>";
+
+        tableBody.appendChild(tr);
+
+
+      }
+    });
+  }
+
+  function whatMonth(month){
+    if(month == 'Jan') {
+      return "01";
+    } else if(month == 'Feb'){
+      return "02";
+    } else if(month == 'Mar'){
+      return "03";
+    } else if(month == 'Apr'){
+      return "04";
+    } else if(month == 'May'){
+      return "05";
+    } else if(month == 'Jun'){
+      return "06";
+    } else if(month == 'Jul'){
+      return "07";
+    } else if(month == 'Aug'){
+      return "08";
+    } else if(month == 'Sep'){
+      return "09";
+    } else if(month == 'Oct'){
+      return "10";
+    } else if(month == 'Nov'){
+      return "11";
+    } else if(month == 'Dec'){
+      return "12";
+    } else {
+      return 0;
+    }
+  }
+
+  //format time
+  'use strict';
+function timeago(ms) {
+
+  var ago = Math.floor(ms / 1000);
+  var part = 0;
+
+  if (ago < 2) { return "a moment ago"; }
+  if (ago < 5) { return "moments ago"; }
+  if (ago < 60) { return ago + " seconds ago"; }
+
+  if (ago < 120) { return "a minute ago"; }
+  if (ago < 3600) {
+    while (ago >= 60) { ago -= 60; part += 1; }
+    return part + " minutes ago";
+  }
+
+  if (ago < 7200) { return "an hour ago"; }
+  if (ago < 86400) {
+    while (ago >= 3600) { ago -= 3600; part += 1; }
+    return part + " hours ago";
+  }
+
+  if (ago < 172800) { return "a day ago"; }
+  if (ago < 604800) {
+    while (ago >= 172800) { ago -= 172800; part += 1; }
+    return part + " days ago";
+  }
+
+  if (ago < 1209600) { return "a week ago"; }
+  if (ago < 2592000) {
+    while (ago >= 604800) { ago -= 604800; part += 1; }
+    return part + " weeks ago";
+  }
+
+  if (ago < 5184000) { return "a month ago"; }
+  if (ago < 31536000) {
+    while (ago >= 2592000) { ago -= 2592000; part += 1; }
+    return part + " months ago";
+  }
+
+  if (ago < 1419120000) { // 45 years, approximately the epoch
+    return "more than year ago";
+  }
+
+  // TODO pass in Date.now() and ms to check for 0 as never
+  return "never";
+}
+  
 
 
 </script>
@@ -182,22 +300,8 @@
           </tr>
         </thead>
 
-        <tbody>
-          <tr>  
-            <td>5003</td>
-            <td>0x4A4DECE9EBE2C524A1...</td>
-            <td>1 min ago</td>
-          </tr> 
-          <tr>  
-            <td>5002</td>
-            <td>0x4A4DECE9EBE2C524A1...</td>
-            <td>5 mins ago</td>
-          </tr> 
-          <tr>  
-            <td>5001</td>
-            <td>0x4A4DECE9EBE2C524A1...</td>
-            <td>10 mins ago</td>
-          </tr>
+        <tbody id="tbody">
+
 
            <!-- pagination for blocks -->
           <ul class="pagination">
@@ -333,6 +437,7 @@
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
   <script src="js/bin/materialize.js"></script>
   <script src="js/Minima/minima.js"></script>
+  <script src="js/moment.js"></script>
 
   </body>
 </html>

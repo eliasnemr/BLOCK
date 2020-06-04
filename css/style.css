@@ -1,5 +1,8 @@
 @charset "UTF-8";
 /** Mini Custom styling */
+.header {
+  font-size: 26px;
+}
 .search {
   width: 24px;
 }
