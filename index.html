@@ -9,37 +9,45 @@
   <!-- CSS  -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <script src="js/jquery-3.5.1.min.js"></script>
 </head>
 <body>
-  <!-- Minima.js -->
+<!-- Minima.js -->
 <script type="text/javascript">
-  window.addEventListener("load", function(){
+  $(document).ready(function() {
+    var url = document.location.href;
+    // Display data nicely
+    $("tbody").hide(300).show(3000);
+
+    var url = document.location.href;
+    
+
+    // add a click event to each row
+    $('#blocks-table tbody').on('click', 'tr', function(e) {
+      $("#blocks-table").load("details.html");
+      var td = this.cells[1];  // the hash <td>
+      relativeHash = $(td).text();
+      console.log(url+"?"+relativeHash)
+    });
+  });
+  window.addEventListener("load", function(){ 
     window.addEventListener("MinimaEvent", function(evt){
 
     //Deal with each message type
 		 		if(evt.detail.event == "connected"){
+          console.log("Welcome to BLOCK!");
           // init SQL dB for blocks
           createSQL();
           // get last 128 blocks, if didn't already
-          Minima.sql('SELECT * FROM blocks', function(resp){
-            if(resp.response.count == 0){
-              get127Blocks();
-            }
-          });
+          get127Blocks();
 		 			// set last block text
-          getBlock();
+          getBlockNumber();
 
-          // set blocks
-          appendData(); 
 			 	}else if(evt.detail.event == "newblock"){
 		 			// set last block text
-          getBlock();
-
-          // update blocks
-          //updateBlocks();
-
-          // show table
-          Minima.sql("SELECT * FROM blocks;");
+          getBlockNumber();
+          // update new Block 
+          getNewBlock();
 		 	
 		 		}else if(evt.detail.event == "newbalance"){
 		 			//Set the Balance..
@@ -50,70 +58,74 @@
     Minima.init();
   });
   // functions
-  function getBlock() {
+  function getBlockNumber() {
     document.getElementById('blocknumber').innerHTML = "<b>"+ Minima.block+"</b>";
   }
-
-  let tip = "";let count = 0;var populateQuery = "INSERT INTO blocks (height, hash, relayed) VALUES ";
-  function get127Blocks() {
-
-    Minima.cmd("status", function(resp) {
-      if(count == 0){  
-        // get block header
-        tip = resp.response.tip;
-      }
-      count++;
-      // let's get the tip's parent
-      Minima.cmd("txpowinfo "+tip, function(res){
-        // get block header
-        tip = res.response.txpow.header.superparents[0].parent;
-        let height = res.response.txpow.header.block;
-        let relayed = res.response.txpow.header.date;
-
-        // callback
-        if(count <= 127){
-          // populate with the retrieved header
-           populateBlocksSQLTable(height, tip, relayed);
-          // callback
-          get127Blocks();
-        } else {
-          return 0;
-        }
-      });
-    }); 
-  }
-
   // SQL to create the dB
-  var initSQL = "CREATE Table IF NOT EXISTS blocks ( height VARCHAR(160) NOT NULL, hash VARCHAR(160) NOT NULL, relayed VARCHAR(160) NOT NULL);"+
+  var INITSQL = "CREATE Table IF NOT EXISTS blocks ( height VARCHAR(160) NOT NULL, hash VARCHAR(160) NOT NULL, relayed VARCHAR(160) NOT NULL);"+
                 "SELECT * FROM blocks";
   // Run command to create the SQL Database
-  function createSQL() {
-    Minima.sql(initSQL, function(resp){
+  function createSQL(){
+    Minima.sql(INITSQL, function(resp){
       if(!resp.status){
         alert("Something went wrong with SQL DB+\n\n"+resp.message);
         console.log(JSON.stringify(resp, null, 2));
       }
     });
   }
+  var hash = "";var height="";var relayed="";var count = 0;var parent = "";
+  var POPULATEQUERY = "INSERT INTO blocks (height, hash, relayed) VALUES ";
+  function get127Blocks() {
+    if(count == 0){
+    hash = Minima.status['tip'];
+    height = Minima.status['lastblock'];
+    relayed = Minima.status['lasttime'];
+
+    // INSERT INTO to SQL table
+    populateBlocksSQLTable(height, hash, parent);
+    // APPEND to HTML Table
+    appendData(height, hash, relayed);
+    } 
+    // let's get the tip's parent
+    Minima.cmd("txpowinfo "+hash, function(res){
+      // get block's parent block
+      parent = res.response.txpow.header.superparents[0].parent;
+      Minima.cmd("txpowinfo "+parent, function(res){
+        hash = res.response.txpow.txpowid;
+        height = res.response.txpow.header.block;
+        relayed = res.response.txpow.header.date;
+
+        // INSERT INTO to SQL table
+        populateBlocksSQLTable(height, hash, parent);
+
+        // callback
+        if(count < 128){
+          count++;
+          get127Blocks();
+        } else {
+          return 0;
+        }
+      });
+    });
+  }
   // Get the recent last 128 blocks and populate local SQL IF they don't already exist
-  var checkQUERY = "SELECT * FROM BLOCKS WHERE hash = '";
+  var CHECKQUERY = "SELECT * FROM BLOCKS WHERE hash = '";
   function populateBlocksSQLTable(height, hash, relayed) {
     // check if hash already exists, if not populate..
-    Minima.sql(checkQUERY+hash+"'", function(resp){
-
+    Minima.sql(CHECKQUERY+hash+"'", function(resp){
       console.log(JSON.stringify(resp, null, 2));
       
       // check if block already exists
       if(resp.status == true && resp.response.count == 0){
         // add to sql 
-        Minima.sql(populateQuery+"('"+height+"','"+tip+"','"+relayed+"')", function(resp){
+        Minima.sql(POPULATEQUERY+"("+height+",'"+hash+"','"+relayed+"')", function(resp){
           // something went wrong, stop
           if(!resp.status){
             alert("Something went wrong with SQL DB+\n\n"+resp.message);
             console.log(JSON.stringify(resp, null, 2));
           // otherwise insert..
           } else {
-            console.log("Pushed new blocks");
+            console.log("Pushed a new block");
           }
         });
       } else {
@@ -121,56 +133,57 @@
       }
     });
   }
+  var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FROM blocks))";
+  function getNewBlock() {
+    // Get tip of chain 
+    tip = Minima.status['tip'];
 
-  var drop1query = "DELETE FROM blocks WHERE (SELECT MIN(height) as ROOT from blocks);"
-  // delete min height, add new block to top of table
-  function updateBlocks() {
-    // delete the 128th block
-    Minima.sql(drop1query, function(res){
-      console.log(JSON.stringify(res, null, 2));
-    });
+    height = Minima.status['lastblock'];
 
-    // add tip to top 
-    Minima.cmd("status", function(resp) { 
-      // get block header
-      let tip = resp.response.tip;
-      let height = resp.response.lastblock;
-      let relayed = resp.response.lasttime; 
-      
-      populateBlocksSQLTable(height, tip, relayed);
-      
-      console.log("Blocks updated.");
+    relayed = Minima.status['lasttime'];
+
+    console.log("There's a new block at height:"+height);
+    
+    // Delete bottom of list 
+    Minima.sql(DELETELASTQUERY, function(res){
+
+      console.log(res);
+    
+    // Add tip to list  
+    populateBlocksSQLTable(height, tip, relayed);
+    // Add row to the table 
+    setTimeout(function(){
+      appendData(height, tip, relayed);
+    }, 500)
+    
+
+
     });
+    
   }
 
-
-  var pullDataQuery = "SELECT * FROM blocks";
   // append data to HTML
-  function appendData() {
-    Minima.sql(pullDataQuery, function(res){
+  function appendData(height, hash, relayed){
+    var tableBody = document.getElementById('tbody');
+    tableBody.innerHTML = "";
 
-
-      // loop through the blocks
-      for(i = 0; i < res.response.count; i++){
+    Minima.sql("SELECT * from blocks ORDER BY height DESC", function(res){
+      for(i = 0; i < res.response.rows.length; i++){
+        var row = res.response.rows[i];
         // create a row to append to the blocks html table
         var tr = document.createElement("tr");
         // create a var for the table body
         var tableBody = document.getElementById("tbody");
-
-        height = JSON.stringify(res.response.rows[i].HEIGHT);
-        hash = JSON.stringify(res.response.rows[i].HASH);
-        relayed = JSON.stringify(res.response.rows[i].RELAYED);
-
         // format time to time from 
-        time = relayed.substring(25,30)+"-"+whatMonth(relayed.substring(5,8))+"-"+relayed.substring(9,11)+"T"+relayed.substring(12,17);
+        time = row.RELAYED.substring(25,30)+"-"+whatMonth("Jun")+"-"+row.RELAYED.substring(8,10)+"T"+row.RELAYED.substring(11,16);
         timeFrom = moment(time).fromNow();
-        // add cells to the row
-        tr.innerHTML = "<td>"+height.substring(1,4)+"</td>"+"<td>"+hash.substring(1, 131)+"</td>"+"<td>"+timeFrom+"</td>";
 
+
+        // add cells to the row .. hash length is 131
+        tr.innerHTML = "<td id='height'>"+row.HEIGHT+"</td>"+"<td id='hash'>"+row.HASH.substring(0, 131)+"</td>"+"<td id='relayed'>"+timeFrom+"</td>";
         tableBody.appendChild(tr);
-
-
       }
+      
     });
   }
 
@@ -203,57 +216,6 @@
       return 0;
     }
   }
-
-  //format time
-  'use strict';
-function timeago(ms) {
-
-  var ago = Math.floor(ms / 1000);
-  var part = 0;
-
-  if (ago < 2) { return "a moment ago"; }
-  if (ago < 5) { return "moments ago"; }
-  if (ago < 60) { return ago + " seconds ago"; }
-
-  if (ago < 120) { return "a minute ago"; }
-  if (ago < 3600) {
-    while (ago >= 60) { ago -= 60; part += 1; }
-    return part + " minutes ago";
-  }
-
-  if (ago < 7200) { return "an hour ago"; }
-  if (ago < 86400) {
-    while (ago >= 3600) { ago -= 3600; part += 1; }
-    return part + " hours ago";
-  }
-
-  if (ago < 172800) { return "a day ago"; }
-  if (ago < 604800) {
-    while (ago >= 172800) { ago -= 172800; part += 1; }
-    return part + " days ago";
-  }
-
-  if (ago < 1209600) { return "a week ago"; }
-  if (ago < 2592000) {
-    while (ago >= 604800) { ago -= 604800; part += 1; }
-    return part + " weeks ago";
-  }
-
-  if (ago < 5184000) { return "a month ago"; }
-  if (ago < 31536000) {
-    while (ago >= 2592000) { ago -= 2592000; part += 1; }
-    return part + " months ago";
-  }
-
-  if (ago < 1419120000) { // 45 years, approximately the epoch
-    return "more than year ago";
-  }
-
-  // TODO pass in Date.now() and ms to check for 0 as never
-  return "never";
-}
-  
-
 
 </script>
 
@@ -291,7 +253,7 @@ function timeago(ms) {
       <br><br>
       
       <!-- Table for Blocks -->
-      <table class="responsive-table highlight">
+      <table id="blocks-table" class="responsive-table highlight">
         <thead>
           <tr>
             <td>Height</td>
@@ -302,7 +264,6 @@ function timeago(ms) {
 
         <tbody id="tbody">
 
-
            <!-- pagination for blocks -->
           <ul class="pagination">
           <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
@@ -311,8 +272,10 @@ function timeago(ms) {
           <li class="waves-effect"><a href="#!">3</a></li>
           <li class="waves-effect"><a href="#!">4</a></li>
           <li class="waves-effect"><a href="#!">5</a></li>
+          <li class="waves-effect"><a href="#!">6</a></li>
           <li class="waves-effect"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
           </ul> 
+          
         </tbody>
       </table>
     </div>
@@ -438,6 +401,9 @@ function timeago(ms) {
   <script src="js/bin/materialize.js"></script>
   <script src="js/Minima/minima.js"></script>
   <script src="js/moment.js"></script>
+  
+
+  
 
   </body>
 </html>
