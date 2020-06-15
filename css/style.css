@@ -1,5 +1,44 @@
 @charset "UTF-8";
 /** Mini Custom styling */
+.subtitle {
+  font-weight: 80 !important;
+}
+.nothing {
+  background-color: #f2f2f2 !important;
+  color: black !important;
+  font-weight: 400;
+}
+#search-input {
+  font-size:15px !important;
+  box-sizing: border-box;
+  width: 100%;
+  height: 62px;
+  padding: 0 45px 0 0;
+
+}
+.search {
+  position:absolute;
+  align-self: center;
+  cursor: pointer;
+  padding: 20px 20px 0 0 ;
+}
+.hideMe {
+  display: none !important;
+}
+#hashtxt {
+  white-space: normal;
+}
+#backbtn {
+  margin-left: 10px;
+}
+#header {
+  font-weight: 300;
+  font-size: 44px;
+  padding: 5px;
+}
+.info {
+  margin-top: 28px;
+}
 .header {
   font-size: 26px;
 }
@@ -17,9 +56,6 @@
 }
 .minima-grey-bg {
   background-color: #3b496c !important;
-}
-.footer-bg {
-  background-image: url("assets/footer.jpg");
 }
 .minima-blue-txt {
   color: #35ABC7 !important;

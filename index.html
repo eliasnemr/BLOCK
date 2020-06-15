@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
   <title>Block</title>
 
   <!-- CSS  -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
   <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <script src="js/jquery-3.5.1.min.js"></script>
 </head>
@@ -19,17 +18,152 @@
     // Display data nicely
     $("tbody").hide(300).show(3000);
 
+    $('.tooltipped').tooltip({delay: 50});
+
     var url = document.location.href;
     
-
     // add a click event to each row
-    $('#blocks-table tbody').on('click', 'tr', function(e) {
-      $("#blocks-table").load("details.html");
-      var td = this.cells[1];  // the hash <td>
-      relativeHash = $(td).text();
-      console.log(url+"?"+relativeHash)
+    $('#blocks-table tbody').on('click', 'tr', function(e) {      
+      //$("#blocks-table").load("details.html");
+      
+      // get relative hash of row clicked on..
+      var td = this.cells[3];  // the hash <td>
+      var relativeHash = $(td).text();
+      // add to localStorage to pass to details.html..
+      localStorage.setItem("relativeHash", relativeHash);
+
+      window.location.href = '/details.html?'+relativeHash;
+      return false;
     });
+
+  $("#searchBtn").on("click", function(){
+        
+    var addr = $("#search-input").val().toLowerCase();
+    console.log(addr);
+        // quit exit if nothing
+        if(addr.length == ""){
+          console.log("it's empty.");
+          return 0;
+      }
+  Minima.cmd("txpowsearch input:"+addr, function(res){
+    if(res.status == true){
+      if(res.response.txpowlist.length > 0){
+        // something found.. load it
+        loadData(res);
+        console.log("Found something with input");
+      } else {
+        console.log("Trying output:");
+        Minima.cmd("txpowsearch output:"+addr, function(res){
+          if(res.status == true){
+            if(res.response.txpowlist.length > 0){
+              // something found.. load it
+              loadData(res);
+              console.log("Found something with output");
+            } else {
+              console.log("Trying tokenid...");
+              Minima.cmd("txpowsearch tokenid:"+addr, function(res){
+                if(res.status == true){
+                  if(res.response.txpowlist.length > 0){
+                  // something found.. load it
+                  loadData(res);
+                  console.log("Found something with tokenid");
+                  } else {
+                    // nothing found.. display to user 
+                    var markup = "<p class='center row nothing'>Nothing found with that address.</p>"
+                    $("#blocks-table").before(markup);
+                    $(".nothing").show(2000);
+                    setTimeout(function(){
+                      $(".nothing").remove();
+                    }, 5000);
+                  }
+                }
+              });
+            }
+          }
+        });
+      }
+    } 
   });
+});
+
+// Detect enter key for input 
+$('#search-input').keypress(function(event){
+  var keycode = (event.keyCode ? event.keyCode : event.which);
+  if(keycode == '13'){
+      var addr = $("#search-input").val().toLowerCase();
+      console.log(addr);
+      // quit exit if nothing
+      if(addr.length == ""){
+        console.log("Enter something..");
+        return 0;
+      }
+      Minima.cmd("txpowsearch input:"+addr, function(res){
+        if(res.status == true){
+          if(res.response.txpowlist.length > 0){
+              // something found.. load it
+              loadData(res);
+            console.log("Found something with input");
+          } else {
+            console.log("Trying output:");
+            Minima.cmd("txpowsearch output:"+addr, function(res){
+              if(res.status == true){
+                if(res.response.txpowlist.length > 0){
+                  // something found.. load it
+                    loadData(res);
+                  console.log("Found something with output");
+                } else {
+                  console.log("Trying tokenid...");
+                  Minima.cmd("txpowsearch tokenid:"+addr, function(res){
+                    if(res.status == true){
+                      if(res.response.txpowlist.length > 0){
+                      // something found.. load it
+                        loadData(res);
+                        console.log("Found something with tokenid");
+                      } else {
+                      // nothing found.. display to user 
+                      var markup = "<p class='center row nothing'>Nothing found with that address.</p>"
+                      $("#blocks-table").before(markup);
+                      $(".nothing").show(2000);
+                      setTimeout(function(){
+                        $(".nothing").remove();
+                      }, 5000);
+                    }
+                    }
+                  });
+                }
+              }
+            });
+          }
+        } 
+      });
+  }
+  //Stop the event from propogation to other handlers
+  //If this line will be removed, then keypress event handler attached 
+  //at document level will also be triggered
+  event.stopPropagation();
+});
+
+function loadData(res){
+   $('#blocks-table tbody').empty();    
+      $.each(res.response.txpowlist, function(i, el){
+        var height = el.inblock;
+        var hash = el.txpow.txpowid;
+        var relayed = el.txpow.header.date;
+        // format time to time from 
+        time = relayed.substring(25,30)+"-"+whatMonth("Jun")+"-"+relayed.substring(8,10)+"T"+relayed.substring(11,16);
+        timeFrom = moment(time).fromNow();
+        var markup = "<tr>"+
+                      "<td>"+height+"</td>"+
+                      "<td>"+hash.substring(0, 80)+"...</td>"+
+                      "<td>"+timeFrom+"</td>"+
+                      "<td style='display:none !important;'>"+hash+"</td>"+
+                      "</p>"
+      $('#blocks-table tbody').append(markup);
+    })
+}
+
+});
+
   window.addEventListener("load", function(){ 
     window.addEventListener("MinimaEvent", function(evt){
 
@@ -47,6 +181,8 @@
 		 			// set last block text
           getBlockNumber();
           // update new Block 
+          
+          // doesn't work properly yet...
           getNewBlock();
 		 	
 		 		}else if(evt.detail.event == "newbalance"){
@@ -60,7 +196,7 @@
   // functions
   function getBlockNumber() {
     document.getElementById('blocknumber').innerHTML = "<b>"+ Minima.block+"</b>";
-  }
+}
   // SQL to create the dB
   var INITSQL = "CREATE Table IF NOT EXISTS blocks ( height VARCHAR(160) NOT NULL, hash VARCHAR(160) NOT NULL, relayed VARCHAR(160) NOT NULL);"+
                 "SELECT * FROM blocks";
@@ -149,26 +285,42 @@
 
       console.log(res);
     
-    // Add tip to list  
-    populateBlocksSQLTable(height, tip, relayed);
-    // Add row to the table 
-    setTimeout(function(){
-      appendData(height, tip, relayed);
-    }, 500)
-    
-
-
+      // Add tip to list  
+      populateBlocksSQLTable(height, tip, relayed);
+      // Add row to the table
+        // doesn't work properly yet.. 
+       /**
+       setTimeout(function(){
+         var tableBody = document.getElementById('tbody');
+         var row = tableBody.insertRow(0);
+         var cell1 = row.insertCell(0);
+         var cell2 = row.insertCell(1);
+         var cell3 = row.insertCell(2);
+         var cell4 = row.insertCell(3);
+         cell1.innerHTML = height;
+         cell2.innerHTML = tip.substring(0,100)+"...";
+         // format time to time from 
+         time = relayed.substring(25,30)+"-"+whatMonth("Jun")+"-"+relayed.substring(8,10)+"T"+relayed.substring(11,16);
+         timeFrom = moment(time).fromNow();
+         cell3.innerHTML = timeFrom;
+         cell4.innerHTML = tip;
+         cell4.className = 'hideMe';
+       },500);
+      */
+      
+      setTimeout(function(){
+        appendData(height, tip, relayed);
+      }, 500)
+      
     });
-    
   }
-
   // append data to HTML
   function appendData(height, hash, relayed){
     var tableBody = document.getElementById('tbody');
     tableBody.innerHTML = "";
 
     Minima.sql("SELECT * from blocks ORDER BY height DESC", function(res){
-      for(i = 0; i < res.response.rows.length; i++){
+      for(i = 0; i < res.response.count; i++){
         var row = res.response.rows[i];
         // create a row to append to the blocks html table
         var tr = document.createElement("tr");
@@ -180,7 +332,7 @@
 
 
         // add cells to the row .. hash length is 131
-        tr.innerHTML = "<td id='height'>"+row.HEIGHT+"</td>"+"<td id='hash'>"+row.HASH.substring(0, 131)+"</td>"+"<td id='relayed'>"+timeFrom+"</td>";
+        tr.innerHTML = "<td id='height'>"+row.HEIGHT+"</td>"+"<td id='hash' class='truncate'>"+row.HASH.substring(0, 80)+"...</td>"+"<td id='relayed'>"+timeFrom+"</td>"+"<td style='display:none;'>"+row.HASH+"</td>";
         tableBody.appendChild(tr);
       }
       
@@ -221,16 +373,15 @@
 
   <nav class="minima-blue-bg lighten-1" role="navigation">
     <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">BLOCK</a>
-      <ul class="right hide-on-med-and-down">
-        <li><a href="#">About</a></li>
-      </ul>
-  
+      <ul class="right hide-on-med-and-down"><li><a style="height: 65px;" href="#"><img style="width:50px;" src="assets/logo.png"></a></li>
+        </ul>
       <ul id="nav-mobile" class="sidenav">
         <li><a href="#">about</a></li>
       </ul>
-      <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+
     </div>
   </nav>
+  <!-- Body INFO -->
   <div class="section no-pad-bot" id="index-banner">
     <div class="container">
       <br><br>
@@ -242,45 +393,32 @@
         <div class="row center light" id="blocknumber">
         </div>
       <div class="row center">
-        <h5 class="header col s12 light">Minima's Block Explorer built for all your exploration needs.</h5> 
+        <h5 class="header col s12 light subtitle">Minima's Block Explorer built for all your exploration needs.</h5> 
       </div>
-      <div class="container">
-        <div class="search-wrapper focused row center">
-          <input id="search" placeholder="Search by block number, TxPoW id or Minima Address">
-          <a href="#" id="download-button" class="btn-large waves-effect waves-light minima-orange-bg">Search</a>
+
+      <div class="container center">
+        <div class="search-wrapper my-search-wrap">
+          <input id="search-input" class="tooltipped" placeholder="Search by Hex or Mini Address" type="text" data-html="true" data-position="top" data-tooltip="Limits to the last 300 blocks.  Any older are pruned.">
+          <i id="searchBtn" class="material-icons search">search</i>
         </div>
       </div>
       <br><br>
-      
       <!-- Table for Blocks -->
-      <table id="blocks-table" class="responsive-table highlight">
-        <thead>
-          <tr>
-            <td>Height</td>
-            <td>Hash</td>
-            <td>Mined</td>
-          </tr>
-        </thead>
+        <table id="blocks-table" class="responsive-table highlight">
+          <thead>
+            <tr>
+              <td>Height</td>
+              <td>Hash</td>
+              <td>Mined</td>
+            </tr>
+          </thead>
 
-        <tbody id="tbody">
-
-           <!-- pagination for blocks -->
-          <ul class="pagination">
-          <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
-          <li class="active"><a href="#!">1</a></li>
-          <li class="waves-effect"><a href="#!">2</a></li>
-          <li class="waves-effect"><a href="#!">3</a></li>
-          <li class="waves-effect"><a href="#!">4</a></li>
-          <li class="waves-effect"><a href="#!">5</a></li>
-          <li class="waves-effect"><a href="#!">6</a></li>
-          <li class="waves-effect"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
-          </ul> 
-          
-        </tbody>
-      </table>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
     </div>
-  </div>
   
+    <!-- Become a Minima User advertisement -->
     <div class="section hide-on-small-only show-on-large">
     <div class="row">
         <div class="col s6 offset-s3">
@@ -293,14 +431,14 @@
               <p>Becoming a participitant in our network requires a quick installation on your native device.  Mobile, Desktop, Server or all.  Your choice.  Click below to join the network.</p>
           </div>
           <div class="card-action">
-            <a href="#">Become a Minima User.</a>
+            <a href="https://github.com/spartacusrex99/Minima" target="_blank">Become a Minima User.</a>
           </div>
         </div>
         </div>
       </div>
     </div>
 
-    <div class="section hide-on-large-only">
+    <div class="section hide-on-large-only hide-on-med-only">
     <div class="row">
         <div class="col s12 m7">
           <div class="card">
@@ -312,7 +450,7 @@
               <p>Becoming a participitant in our network is as easy as installing the app on any device you own and just running it.  That's all.  Click below to join the network.</p>
           </div>
           <div class="card-action">
-            <a href="#">Become a Minima User.</a>
+            <a href="https://github.com/spartacusrex99/Minima" target="_blank">Become a Minima User.</a>
           </div>
         </div>
         </div>
@@ -330,7 +468,7 @@
             <h2 class="center light-blue-text"><i class="material-icons">flash_on</i></h2>
             <h5 class="center">Minima's Official Wallet</h5>
 
-            <p class="light">A complete Minima Core Wallet built for Minima Node V1.0.  Learn more <a href="#">here.</a></p>
+            <p class="light">A complete Minima Core Wallet built for Minima Node V1.0.  Learn more <a href="http://mifi.minima.global/minidapps.html" target="_blank">here.</a></p>
           </div>
         </div>
 
@@ -339,7 +477,7 @@
             <h2 class="center light-blue-text"><i class="material-icons">group</i></h2>
             <h5 class="center">MiniDAPP Community</h5>
 
-            <p class="light">Want to build your very own MiniDAPP?  By utilizing Minima's native scripting language, you can build ontop of the MiniDAPP stack.  Learn more <a href="#">here.</a></p>
+            <p class="light">Want to build your very own MiniDAPP?  By utilizing Minima's native scripting language, you can build ontop of the MiniDAPP stack.  Learn more <a href="http://mifi.minima.global/developers.html" target="_blank">here.</a></p>
           </div>
         </div>
 
@@ -348,7 +486,7 @@
             <h2 class="center light-blue-text"><i class="material-icons">settings</i></h2>
             <h5 class="center">The Protocol</h5>
 
-            <p class="light">Minima is built in the perspective of keeping the chain truely decentralised as it scales.  Every user is a node.  Every node is mobile.  Learn more about the protocol <a href="#">here.</a></p>
+            <p class="light">Minima is built in the perspective of keeping the chain truely decentralised as it scales.  Every user is a node.  Every node is mobile.  Learn more about the protocol <a href="https://minima.global/minima-whitepaper-v6.pdf" target="_blank">here.</a></p>
           </div>
         </div>
       </div>
@@ -369,28 +507,24 @@
 
         </div>
         <div class="col l3 s12">
-          <h5 class="white-text">Settings</h5>
-          <ul>
-            <li><a class="white-text" href="#!">Link 1</a></li>
-            <li><a class="white-text" href="#!">Link 2</a></li>
-            <li><a class="white-text" href="#!">Link 3</a></li>
-            <li><a class="white-text" href="#!">Link 4</a></li>
-          </ul>
+
         </div>
         <div class="col l3 s12">
           <h5 class="white-text">Connect</h5>
           <ul>
-            <li><a class="white-text" href="#!">Link 1</a></li>
-            <li><a class="white-text" href="#!">Link 2</a></li>
-            <li><a class="white-text" href="#!">Link 3</a></li>
-            <li><a class="white-text" href="#!">Link 4</a></li>
+            <li><a class="white-text" href="https://t.me/Minima_Global" target="_blank">Telegram</a></li>
+            <li><a class="white-text" href="https://twitter.com/Minima_Global" target="_blank">Twitter</a></li>
+            <li><a class="white-text" href="https://medium.com/minima-global" target="_blank">Medium</a></li>
+            <li><a class="white-text" href="https://github.com/spartacusrex99/Minima" target="_blank">Github</a></li>
+            <li><a class="white-text" href="https://minima.global/" target="_blank">Official Website</a></li>
+
           </ul>
         </div>
       </div>
     </div>
     <div class="footer-copyright minima-blue-bg">
       <div class="container">
-      Made by <a class="orange-text text-lighten-3" href="#">the Minima Team</a>
+      Made by <a class="orange-text text-lighten-3" href="https://github.com/eliasnemr" target="_blank">Elias</a>
       </div>
     </div>
   </footer>
@@ -401,9 +535,6 @@
   <script src="js/bin/materialize.js"></script>
   <script src="js/Minima/minima.js"></script>
   <script src="js/moment.js"></script>
-  
-
-  
 
   </body>
 </html>
