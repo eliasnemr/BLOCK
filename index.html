@@ -1,30 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <base href="./"/>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
-  <title>Block</title>
-
+  <title>Block - Minima's Explorer</title>
+  
   <!-- CSS  -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
   <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link rel="icon" type="image/png" href="assets/blockicon.png" />
   <script src="js/jquery-3.5.1.min.js"></script>
+
 </head>
 <body>
 <!-- Minima.js -->
 <script type="text/javascript">
+  // global table objs 
+  var table;var tabledata = [];
+
+  // Minima Event Manager
+  window.addEventListener("load", function(){ 
+    window.addEventListener("MinimaEvent", function(evt){
+    //Deal with each message type
+		 		if(evt.detail.event == "connected"){
+          console.log("Welcome to BLOCK!");
+          // init SQL dB for blocks
+          createSQL();
+          // get last 128 blocks
+          add127BlocksToSQL();
+          // init table 
+          initTable();
+
+		 			// set block # sub heading
+          getBlockNumber();
+
+			 	}else if(evt.detail.event == "newblock"){
+		 			// set last block text
+          getBlockNumber();
+
+          // update SQL
+          getNewBlockToSQL();
+          
+          // populateTable
+          updateTableData();
+
+          
+		 		}else if(evt.detail.event == "newbalance"){
+		 			//Set the Balance..
+		    }     
+    });
+    // init Minima
+    Minima.init();
+  });
+  // Misc Functions to help with BLOCK 
+  function getBlockNumber() {
+    document.getElementById('blocknumber').innerHTML = "<b>"+ Minima.block+"</b>";
+  } 
+  // make a blocks json for tabulator
+  function initTable() {
+    $(document).ready(function(){
+      Minima.sql("SELECT DISTINCT height, hash, relayed from blocks ORDER BY height DESC", function(res){
+
+        // push to the tabledata arr 
+        $.each(res.response.rows, function(i, el){
+
+          var dt = el.RELAYED;
+          var timeFrom2 = new Date((dt*1000)).toISOString();
+          var timeFrom = moment(timeFrom2).fromNow();
+          el.RELAYED = timeFrom;
+
+          tabledata.push(el);
+        });
+
+        //define table
+        table = new Tabulator("#example-table", {
+            height: 500,
+            columns:[
+            {title: "Height", field: "HEIGHT", width: 100},
+            {title: "Hash", field: "HASH"},
+            {title: "Relayed", field:"RELAYED", width:150}
+            ],
+            index:"HEIGHT",
+            layout:"fitColumns",
+        });
+
+        table.setData(tabledata)
+        .then(function(){
+            //run code after table has been successfuly updated
+            //console.log("Table Data Loaded!");
+        })
+        .catch(function(error){
+            //handle error loading data
+            console.log(error);
+        });
+
+      });
+
+    });
+  }
+  /** Get min of*/ 
+  function getMin(arr, prop) {
+    var min;
+    for (var i=0 ; i<arr.length ; i++) {
+        if (min == null || parseInt(arr[i][prop]) > parseInt(min[prop]))
+            min = arr[i];
+    }
+    return min;
+  }
+  function updateTableData() {
+    $(document).ready(function(){
+      Minima.sql("SELECT height, hash, relayed FROM blocks WHERE (height = (SELECT MAX(height) as TIP from blocks))", function(res){
+        // create json
+        var dt = res.response.rows[0].RELAYED;
+        var tF = new Date((dt*1000)).toISOString(); 
+        var tF2 = moment(tF).fromNow();
+        res.response.rows[0].RELAYED = tF2;
+        var newrow = {"HEIGHT": res.response.rows[0].HEIGHT, "HASH": res.response.rows[0].HASH, "RELAYED": res.response.rows[0].RELAYED};
+
+        //tabledata.push(res);
+        
+        console.log(newrow);
+
+        table.addData(newrow, true);
+        // add new row to tabulator
+        if(table){
+
+          //table.addData(newrow, true);
+
+          var tb = tabledata;
+          var maxPpg = getMin(tabledata, "HEIGHT");
+          console.log(maxPpg.HEIGHT);
+
+            // Delete first row..
+            /** 
+            table.deleteRow()
+            .then(function(){
+                //run code after row has been deleted
+                console.log("first row deleted");
+            })
+            .catch(function(error){
+                //handle error deleting row
+            });
+            */
+        }
+      }); 
+    });
+  }
+  // SQL to create the dB
+  var INITSQL = "CREATE Table IF NOT EXISTS blocks ( height VARCHAR(160) NOT NULL, hash VARCHAR(160) NOT NULL, relayed VARCHAR(160) NOT NULL);"+
+                "SELECT DISTINCT height, hash, relayed FROM blocks";
+  // Run command to create the SQL Database
+  function createSQL(){
+    Minima.sql(INITSQL, function(resp){
+      console.log(resp);
+      if(!resp.status){
+        alert("Something went wrong with SQL DB+\n\n"+resp.message);
+        console.log(JSON.stringify(resp, null, 2));
+      }
+    });
+  }
+  var hash = "";var height="";var relayed="";var count = 0;var parent = "";
+  var POPULATEQUERY = "INSERT INTO blocks (height, hash, relayed) VALUES ";
+  // Recursive function to traverse through BST to find parents 
+  function add127BlocksToSQL() {
+    if(count == 0){
+    hash = Minima.status['tip'];
+    height = Minima.status['lastblock'];
+    // do this to get time in seconds..
+    Minima.cmd("txpowinfo "+hash, function(res){
+      relayed = res.response.txpow.header.timesecs;
+    });
+      populateBlocksSQLTable(height, hash, relayed);
+    }
+    // let's get the tip's parent to traverse through binary tree..
+    Minima.cmd("txpowinfo "+hash, function(res){
+      // get block's parent block
+      parent = res.response.txpow.header.superparents[0].parent;
+      Minima.cmd("txpowinfo "+parent, function(res) {
+        hash = res.response.txpow.txpowid;
+        height = res.response.txpow.header.block;
+        relayed = res.response.txpow.header.timesecs;
+
+        // INSERT INTO to SQL table
+        populateBlocksSQLTable(height, hash, relayed);
+
+        // callback
+        if(count < 128){
+          count++;
+          add127BlocksToSQL();
+        } else {
+          return 0;
+        }
+      });
+    });
+  }
+  // Get the recent last 128 blocks and populate local SQL IF they don't already exist
+  var CHECKQUERY = "SELECT DISTINCT height, hash, relayed FROM BLOCKS WHERE hash = '";
+  function populateBlocksSQLTable(height, hash, relayed) {
+    // check if hash already exists, if not populate..
+    Minima.sql(CHECKQUERY+hash+"'", function(resp){
+      // check if block already exists
+      if(resp.response.status == true && resp.response.count == 0){
+        // add to sql 
+        Minima.sql(POPULATEQUERY+"("+height+",'"+hash+"','"+relayed+"')", function(resp){
+          // something went wrong, stop
+          if(!resp.status){
+            alert("Something went wrong with SQL DB+\n\n"+resp.message);
+          // otherwise insert..
+          } else {
+            //console.log("Pushed a new block to SQL Database.");
+          }
+        });
+      } else {
+        //console.log("Block already exists in SQL Database!");
+      }
+    });
+  }
+  var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FROM blocks))";
+  function getNewBlockToSQL() {  
+    // Get tip of chain 
+    tip = Minima.status['tip'];
+    // Check if this block exists 
+    Minima.sql(CHECKQUERY+tip+"'", function(resp){
+    if(resp.response.status == true && resp.response.count == 0){
+
+      height = Minima.status['lastblock'];
+      // only way to get time in secs for now...
+      Minima.cmd("txpowinfo "+tip, function(res){
+        relayed = res.response.txpow.header.timesecs;
+      });
+      
+      // Delete bottom of list 
+      Minima.sql(DELETELASTQUERY, function(res){
+      
+        // Add tip to SQL list  
+        populateBlocksSQLTable(height, tip, relayed);
+
+      });
+    }
+      
+    });
+  }
+
+  // JQUERY Helpful Functions
   $(document).ready(function() {
-    var url = document.location.href;
     // Display data nicely
-    $("tbody").hide(300).show(3000);
-
+    $("tbody").hide(300).show(1000);
+    // Materialize tooltip
     $('.tooltipped').tooltip({delay: 50});
+    // Pagination 
+    $('#pagination').materializePagination({
+    align: 'left',
+    lastPage:  10,
+    firstPage:  1,
+    urlParameter: 'page',
+    useUrlParameter: true,
+    onClickCallback: function(requestedPage){
+        console.log('Requested page is '+ requestedPage);
+        //populateHTMLTable(requestedPage-1+"0");
 
-    var url = document.location.href;
-    
+    }
+    }); 
+    // elias github
+    $("#elias").on("click", function(){
+      window.open('https://github.com/eliasnemr', '_blank'); 
+    });
+
     // add a click event to each row
     $('#blocks-table tbody').on('click', 'tr', function(e) {      
-      //$("#blocks-table").load("details.html");
+      //$("#blocks-table").load("./details.html");
       
       // get relative hash of row clicked on..
       var td = this.cells[3];  // the hash <td>
@@ -32,41 +277,34 @@
       // add to localStorage to pass to details.html..
       localStorage.setItem("relativeHash", relativeHash);
 
-      window.location.href = '/details.html?'+relativeHash;
+      window.location.href = './details.html?'+relativeHash;
       return false;
     });
 
   $("#searchBtn").on("click", function(){
         
     var addr = $("#search-input").val().toLowerCase();
-    console.log(addr);
         // quit exit if nothing
         if(addr.length == ""){
-          console.log("it's empty.");
-          return 0;
+          location.reload();
       }
   Minima.cmd("txpowsearch input:"+addr, function(res){
     if(res.status == true){
       if(res.response.txpowlist.length > 0){
         // something found.. load it
         loadData(res);
-        console.log("Found something with input");
       } else {
-        console.log("Trying output:");
         Minima.cmd("txpowsearch output:"+addr, function(res){
           if(res.status == true){
             if(res.response.txpowlist.length > 0){
               // something found.. load it
               loadData(res);
-              console.log("Found something with output");
             } else {
-              console.log("Trying tokenid...");
               Minima.cmd("txpowsearch tokenid:"+addr, function(res){
                 if(res.status == true){
                   if(res.response.txpowlist.length > 0){
                   // something found.. load it
                   loadData(res);
-                  console.log("Found something with tokenid");
                   } else {
                     // nothing found.. display to user 
                     var markup = "<p class='center row nothing'>Nothing found with that address.</p>"
@@ -91,34 +329,27 @@ $('#search-input').keypress(function(event){
   var keycode = (event.keyCode ? event.keyCode : event.which);
   if(keycode == '13'){
       var addr = $("#search-input").val().toLowerCase();
-      console.log(addr);
       // quit exit if nothing
       if(addr.length == ""){
-        console.log("Enter something..");
-        return 0;
+        location.reload();
       }
       Minima.cmd("txpowsearch input:"+addr, function(res){
         if(res.status == true){
           if(res.response.txpowlist.length > 0){
               // something found.. load it
               loadData(res);
-            console.log("Found something with input");
           } else {
-            console.log("Trying output:");
             Minima.cmd("txpowsearch output:"+addr, function(res){
               if(res.status == true){
                 if(res.response.txpowlist.length > 0){
                   // something found.. load it
                     loadData(res);
-                  console.log("Found something with output");
                 } else {
-                  console.log("Trying tokenid...");
                   Minima.cmd("txpowsearch tokenid:"+addr, function(res){
                     if(res.status == true){
                       if(res.response.txpowlist.length > 0){
                       // something found.. load it
                         loadData(res);
-                        console.log("Found something with tokenid");
                       } else {
                       // nothing found.. display to user 
                       var markup = "<p class='center row nothing'>Nothing found with that address.</p>"
@@ -144,266 +375,95 @@ $('#search-input').keypress(function(event){
 });
 
 function loadData(res){
-   $('#blocks-table tbody').empty();    
-      $.each(res.response.txpowlist, function(i, el){
+   $('#blocks-table tbody').empty();
+      var lastHeight = "";    
+      $.each(res.response.txpowlist.reverse(), function(i, el){
+        
         var height = el.inblock;
         var hash = el.txpow.txpowid;
-        var relayed = el.txpow.header.date;
-        // format time to time from 
-        time = relayed.substring(25,30)+"-"+whatMonth("Jun")+"-"+relayed.substring(8,10)+"T"+relayed.substring(11,16);
-        timeFrom = moment(time).fromNow();
+        var relayed = el.txpow.header.timesecs;
+        var dt = relayed;
+        var timeFrom2 = new Date(dt*1000).toISOString();
+        var timeFrom = moment(timeFrom2).fromNow();
+        
+        
         var markup = "<tr>"+
                       "<td>"+height+"</td>"+
                       "<td>"+hash.substring(0, 80)+"...</td>"+
                       "<td>"+timeFrom+"</td>"+
                       "<td style='display:none !important;'>"+hash+"</td>"+
-                      "</p>"
-      $('#blocks-table tbody').append(markup);
+                      "</p>";
+      if(lastHeight !== height){
+        $('#blocks-table tbody').append(markup);
+      }
+      lastHeight = height;
     })
 }
 
+
+
 });
-
-  window.addEventListener("load", function(){ 
-    window.addEventListener("MinimaEvent", function(evt){
-
-    //Deal with each message type
-		 		if(evt.detail.event == "connected"){
-          console.log("Welcome to BLOCK!");
-          // init SQL dB for blocks
-          createSQL();
-          // get last 128 blocks, if didn't already
-          get127Blocks();
-		 			// set last block text
-          getBlockNumber();
-
-			 	}else if(evt.detail.event == "newblock"){
-		 			// set last block text
-          getBlockNumber();
-          // update new Block 
-          
-          // doesn't work properly yet...
-          getNewBlock();
-		 	
-		 		}else if(evt.detail.event == "newbalance"){
-		 			//Set the Balance..
-			 		setBalance();
-		    }     
-    });
-    // init Minima
-    Minima.init();
-  });
-  // functions
-  function getBlockNumber() {
-    document.getElementById('blocknumber').innerHTML = "<b>"+ Minima.block+"</b>";
-}
-  // SQL to create the dB
-  var INITSQL = "CREATE Table IF NOT EXISTS blocks ( height VARCHAR(160) NOT NULL, hash VARCHAR(160) NOT NULL, relayed VARCHAR(160) NOT NULL);"+
-                "SELECT * FROM blocks";
-  // Run command to create the SQL Database
-  function createSQL(){
-    Minima.sql(INITSQL, function(resp){
-      if(!resp.status){
-        alert("Something went wrong with SQL DB+\n\n"+resp.message);
-        console.log(JSON.stringify(resp, null, 2));
-      }
-    });
-  }
-  var hash = "";var height="";var relayed="";var count = 0;var parent = "";
-  var POPULATEQUERY = "INSERT INTO blocks (height, hash, relayed) VALUES ";
-  function get127Blocks() {
-    if(count == 0){
-    hash = Minima.status['tip'];
-    height = Minima.status['lastblock'];
-    relayed = Minima.status['lasttime'];
-
-    // INSERT INTO to SQL table
-    populateBlocksSQLTable(height, hash, parent);
-    // APPEND to HTML Table
-    appendData(height, hash, relayed);
-    } 
-    // let's get the tip's parent
-    Minima.cmd("txpowinfo "+hash, function(res){
-      // get block's parent block
-      parent = res.response.txpow.header.superparents[0].parent;
-      Minima.cmd("txpowinfo "+parent, function(res){
-        hash = res.response.txpow.txpowid;
-        height = res.response.txpow.header.block;
-        relayed = res.response.txpow.header.date;
-
-        // INSERT INTO to SQL table
-        populateBlocksSQLTable(height, hash, parent);
-
-        // callback
-        if(count < 128){
-          count++;
-          get127Blocks();
-        } else {
-          return 0;
-        }
-      });
-    });
-  }
-  // Get the recent last 128 blocks and populate local SQL IF they don't already exist
-  var CHECKQUERY = "SELECT * FROM BLOCKS WHERE hash = '";
-  function populateBlocksSQLTable(height, hash, relayed) {
-    // check if hash already exists, if not populate..
-    Minima.sql(CHECKQUERY+hash+"'", function(resp){
-      console.log(JSON.stringify(resp, null, 2));
-      
-      // check if block already exists
-      if(resp.status == true && resp.response.count == 0){
-        // add to sql 
-        Minima.sql(POPULATEQUERY+"("+height+",'"+hash+"','"+relayed+"')", function(resp){
-          // something went wrong, stop
-          if(!resp.status){
-            alert("Something went wrong with SQL DB+\n\n"+resp.message);
-            console.log(JSON.stringify(resp, null, 2));
-          // otherwise insert..
-          } else {
-            console.log("Pushed a new block");
-          }
-        });
-      } else {
-        console.log("Block already exists!");
-      }
-    });
-  }
-  var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FROM blocks))";
-  function getNewBlock() {
-    // Get tip of chain 
-    tip = Minima.status['tip'];
-
-    height = Minima.status['lastblock'];
-
-    relayed = Minima.status['lasttime'];
-
-    console.log("There's a new block at height:"+height);
-    
-    // Delete bottom of list 
-    Minima.sql(DELETELASTQUERY, function(res){
-
-      console.log(res);
-    
-      // Add tip to list  
-      populateBlocksSQLTable(height, tip, relayed);
-      // Add row to the table
-        // doesn't work properly yet.. 
-       /**
-       setTimeout(function(){
-         var tableBody = document.getElementById('tbody');
-         var row = tableBody.insertRow(0);
-         var cell1 = row.insertCell(0);
-         var cell2 = row.insertCell(1);
-         var cell3 = row.insertCell(2);
-         var cell4 = row.insertCell(3);
-         cell1.innerHTML = height;
-         cell2.innerHTML = tip.substring(0,100)+"...";
-         // format time to time from 
-         time = relayed.substring(25,30)+"-"+whatMonth("Jun")+"-"+relayed.substring(8,10)+"T"+relayed.substring(11,16);
-         timeFrom = moment(time).fromNow();
-         cell3.innerHTML = timeFrom;
-         cell4.innerHTML = tip;
-         cell4.className = 'hideMe';
-       },500);
-      */
-      
-      setTimeout(function(){
-        appendData(height, tip, relayed);
-      }, 500)
-      
-    });
-  }
-  // append data to HTML
-  function appendData(height, hash, relayed){
-    var tableBody = document.getElementById('tbody');
-    tableBody.innerHTML = "";
-
-    Minima.sql("SELECT * from blocks ORDER BY height DESC", function(res){
-      for(i = 0; i < res.response.count; i++){
-        var row = res.response.rows[i];
-        // create a row to append to the blocks html table
-        var tr = document.createElement("tr");
-        // create a var for the table body
-        var tableBody = document.getElementById("tbody");
-        // format time to time from 
-        time = row.RELAYED.substring(25,30)+"-"+whatMonth("Jun")+"-"+row.RELAYED.substring(8,10)+"T"+row.RELAYED.substring(11,16);
-        timeFrom = moment(time).fromNow();
-
-
-        // add cells to the row .. hash length is 131
-        tr.innerHTML = "<td id='height'>"+row.HEIGHT+"</td>"+"<td id='hash' class='truncate'>"+row.HASH.substring(0, 80)+"...</td>"+"<td id='relayed'>"+timeFrom+"</td>"+"<td style='display:none;'>"+row.HASH+"</td>";
-        tableBody.appendChild(tr);
-      }
-      
-    });
-  }
-
-  function whatMonth(month){
-    if(month == 'Jan') {
-      return "01";
-    } else if(month == 'Feb'){
-      return "02";
-    } else if(month == 'Mar'){
-      return "03";
-    } else if(month == 'Apr'){
-      return "04";
-    } else if(month == 'May'){
-      return "05";
-    } else if(month == 'Jun'){
-      return "06";
-    } else if(month == 'Jul'){
-      return "07";
-    } else if(month == 'Aug'){
-      return "08";
-    } else if(month == 'Sep'){
-      return "09";
-    } else if(month == 'Oct'){
-      return "10";
-    } else if(month == 'Nov'){
-      return "11";
-    } else if(month == 'Dec'){
-      return "12";
-    } else {
-      return 0;
-    }
-  }
-
 </script>
 
-  <nav class="minima-blue-bg lighten-1" role="navigation">
-    <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">BLOCK</a>
-      <ul class="right hide-on-med-and-down"><li><a style="height: 65px;" href="#"><img style="width:50px;" src="assets/logo.png"></a></li>
-        </ul>
-      <ul id="nav-mobile" class="sidenav">
-        <li><a href="#">about</a></li>
-      </ul>
+  <div class="navbar-fixed">
+  <nav class="menu minima-black-bg" data-target="menu" role="navigation">
+    <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">
+    <img style="width: 110px; padding-top: 11px;" class="hide-on-small-only" src="assets/blocklogowhitetext.svg">
+    <img style="width: 80px; padding-top: 10px; padding-bottom: 0px;" class="hide-on-large-only" src="assets/blocklogowhitetext.svg">
+    </a>
 
+
+    <ul class="right minima-blue-txt">
+      <li>
+        <a href="charts.html">Charts</a>
+      </li>
+    </ul>
+    </div>
+             
+    
+  </nav>
+  </div>
+
+  <div class="navbar-fixed">
+  <nav class="menu minima-grey-bg" data-target="menu">
+    <div class="nav-wrapper container">
+      <div class="col s12">
+        <a href="index.html" class="breadcrumb explorer">Explorer</a>
+      </div>
     </div>
   </nav>
+  </div>
   <!-- Body INFO -->
   <div class="section no-pad-bot" id="index-banner">
     <div class="container">
       <br><br>
       <div class="row center">
-        <img style="width: 80px;" src="assets/icon.png">
+        <img style="width: 300px;" src="assets/blocklogo.svg">
       </div>
-      <h1 class="header center minima-blue-txt" style="margin-top:0px;">BLOCK</h1>
         <!-- Block number -->
-        <div class="row center light" id="blocknumber">
+        <div class="row center bold" style="font-weight: 400;" id="blocknumber">
         </div>
       <div class="row center">
         <h5 class="header col s12 light subtitle">Minima's Block Explorer built for all your exploration needs.</h5> 
       </div>
 
+     
+
+
       <div class="container center">
         <div class="search-wrapper my-search-wrap">
-          <input id="search-input" class="tooltipped" placeholder="Search by Hex or Mini Address" type="text" data-html="true" data-position="top" data-tooltip="Limits to the last 300 blocks.  Any older are pruned.">
+          <input id="search-input" class="tooltipped center-align" placeholder="Search by Hex or Mini Address" type="text" data-html="true" data-position="top" data-tooltip="Limits to the last 300 blocks (Address for Input, Output or token ID)">
           <i id="searchBtn" class="material-icons search">search</i>
         </div>
       </div>
-      <br><br>
+      
+
+      <div id="example-table"></div>
       <!-- Table for Blocks -->
+
+      <!-- Old table... -->
+      <!-- 
+        <ul id="pagination"></ul>
         <table id="blocks-table" class="responsive-table highlight">
           <thead>
             <tr>
@@ -415,6 +475,7 @@ function loadData(res){
 
           <tbody id="tbody"></tbody>
         </table>
+      -->
       </div>
     </div>
   
@@ -495,16 +556,14 @@ function loadData(res){
     <br><br>
   </div>
 
-  <footer class="page-footer minima-grey-bg">
+  <footer class="page-footer minima-black-bg">
     <div class="container">
       <div class="row">
         <div class="col l6 s12">
-          <div class="row center">
-          <img style="width: 80px;" src="assets/Minima.svg">
+          <div class="left-align">
+          <img width="180" src="assets/minilogoblacklandscape.svg">
           </div>
-          <p class="grey-text text-lighten-4">Block is built for Minima with the incentive of allowing you to explore its chain.  Discover the heaviest leaf in the chain and traverse through.</p>
-
-
+          <p class="grey-text">Block is built for Minima with the incentive of allowing you to explore its chain.  Discover the heaviest leaf in the chain and traverse through.</p>
         </div>
         <div class="col l3 s12">
 
@@ -512,29 +571,32 @@ function loadData(res){
         <div class="col l3 s12">
           <h5 class="white-text">Connect</h5>
           <ul>
-            <li><a class="white-text" href="https://t.me/Minima_Global" target="_blank">Telegram</a></li>
-            <li><a class="white-text" href="https://twitter.com/Minima_Global" target="_blank">Twitter</a></li>
-            <li><a class="white-text" href="https://medium.com/minima-global" target="_blank">Medium</a></li>
-            <li><a class="white-text" href="https://github.com/spartacusrex99/Minima" target="_blank">Github</a></li>
-            <li><a class="white-text" href="https://minima.global/" target="_blank">Official Website</a></li>
+            <li><a class="grey-text" href="https://t.me/Minima_Global" target="_blank">Telegram</a></li>
+            <li><a class="grey-text" href="https://twitter.com/Minima_Global" target="_blank">Twitter</a></li>
+            <li><a class="grey-text" href="https://medium.com/minima-global" target="_blank">Medium</a></li>
+            <li><a class="grey-text" href="https://github.com/spartacusrex99/Minima" target="_blank">Github</a></li>
+            <li><a class="grey-text" href="https://minima.global/" target="_blank">Official Website</a></li>
 
           </ul>
         </div>
       </div>
     </div>
-    <div class="footer-copyright minima-blue-bg">
+    <div class="footer-copyright minima-grey-bg">
       <div class="container">
-      Made by <a class="orange-text text-lighten-3" href="https://github.com/eliasnemr" target="_blank">Elias</a>
+      <a id="elias" href="https://github.com/eliasnemr" target="_blank"><i style="color: white;"class="material-icons">code</i></a>
       </div>
     </div>
   </footer>
 
 
   <!--  Scripts-->
+  <link href="https://unpkg.com/tabulator-tables@4.7.1/dist/css/tabulator.min.css" rel="stylesheet">
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.7.1/dist/js/tabulator.min.js"></script>
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
   <script src="js/bin/materialize.js"></script>
   <script src="js/Minima/minima.js"></script>
   <script src="js/moment.js"></script>
-
+  <script src="https://d3js.org/d3-array.v2.min.js"></script>
+  <script src="js/materialize-pagination.js"></script>
   </body>
 </html>

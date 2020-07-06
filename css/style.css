@@ -1,7 +1,16 @@
 @charset "UTF-8";
 /** Mini Custom styling */
+.explorer {
+  font-size: 16px !important;
+  font-weight: 100 !important;
+}
+.explorer2 {
+  font-size: 16px !important;
+  font-weight: 200 !important;
+}
 .subtitle {
   font-weight: 80 !important;
+  font-size: 23px !important;
 }
 .nothing {
   background-color: #f2f2f2 !important;
@@ -54,8 +63,11 @@
 .minima-orange-bg {
   background-color: #F6661E !important;
 }
+.minima-black-bg {
+  background-color: black !important;
+}
 .minima-grey-bg {
-  background-color: #3b496c !important;
+  background-color: #929396 !important;
 }
 .minima-blue-txt {
   color: #35ABC7 !important;
@@ -2774,7 +2786,7 @@ video.responsive-video {
   color: #fff;
 }
 .pagination li.active {
-  background-color: #ee6e73;
+  background-color: black !important;
 }
 .pagination li.disabled a {
   cursor: default;

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
+  <title>Block</title>
+
+  <!-- CSS  -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+  <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <script src="js/jquery-3.5.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+</head>
+
+<body>
+  <div class="navbar-fixed">
+  <nav class="minima-black-bg lighten" role="navigation">
+  <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">
+    <img style="width: 110px; padding-top: 11px;" class="hide-on-small-only" src="assets/blocklogowhitetext.svg">
+    <img style="width: 80px; padding-top: 10px; padding-bottom: 0px;" class="hide-on-large-only" src="assets/blocklogowhitetext.svg">
+    </a>
+  </div>
+  </nav>
+  </div>
+  <div class="navbar-fixed">
+  <nav class="minima-grey-bg">
+    <div class="nav-wrapper container">
+      <div class="col s12">
+        <a href="index.html" class="breadcrumb explorer">Explorer</a>
+        <a href="#" class="breadcrumb explorer2" id="nav-blocks">Charts</a>
+      </div>
+    </div>
+  </nav>
+  </div>
+    <!-- Details BODY INFO -->
+    <div class="container">
+        <div class="center">
+            <canvas id="blockvstimeChart" width="1600" height="900"></canvas>
+        </div>
+    </div>
+<footer class="page-footer minima-black-bg">
+    <div class="container">
+      <div class="row">
+        <div class="col l6 s12">
+          <div class="left-align">
+          <img width="180" src="assets/minilogoblacklandscape.svg">
+          </div>
+          <p class="grey-text">Block is built for Minima with the incentive of allowing you to explore its chain.  Discover the heaviest leaf in the chain and traverse through.</p>
+        </div>
+        <div class="col l3 s12">
+
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Connect</h5>
+          <ul>
+            <li><a class="grey-text" href="https://t.me/Minima_Global" target="_blank">Telegram</a></li>
+            <li><a class="grey-text" href="https://twitter.com/Minima_Global" target="_blank">Twitter</a></li>
+            <li><a class="grey-text" href="https://medium.com/minima-global" target="_blank">Medium</a></li>
+            <li><a class="grey-text" href="https://github.com/spartacusrex99/Minima" target="_blank">Github</a></li>
+            <li><a class="grey-text" href="https://minima.global/" target="_blank">Official Website</a></li>
+
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copyright minima-grey-bg">
+      <div class="container">
+      <a id="elias" href="https://github.com/eliasnemr" target="_blank"><i style="color: white;"class="material-icons">code</i></a>
+      </div>
+    </div>
+  </footer>
+    
+
+<!--  Scripts-->
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="js/bin/materialize.js"></script>
+<script src="js/Minima/minima.js"> </script>
+<script src="js/moment.js"></script>
+<script type="text/javascript">
+
+  $(document).ready(function() {
+
+        
+        window.addEventListener("load", function(){
+          // init Minima 
+          Minima.init();
+
+          window.addEventListener("MinimaEvent", function(evt){
+            if(evt.detail.event == "connected"){
+              console.log('Connected to Minima.')
+              // add every block
+              Minima.cmd("printdb txpow", function(res){
+                var zBlocks = res.response.txpowdb;
+                var mBlocks = [];
+
+                var time = zBlocks[1].txpow.header.timesecs;
+                
+                var formattime = new Date((time*1000)).toISOString();
+                console.log(formattime);
+
+                
+                $.each(zBlocks, function(i, el){
+                  mBlocks.push(
+                    {
+                      block: el.txpow.header.block,
+                      relayed: el.txpow.header.timesecs
+                    });
+                  
+                });
+
+                console.log(mBlocks[0].block);
+
+                var ctx = $("#blockvstimeChart");
+                var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                  labels: ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov"],
+                  datasets: [
+                    {
+                      label: "block",
+                      data: mBlocks.block,
+                    }
+                  ]        
+                  },
+                });
+
+
+                console.log(mBlocks);
+              });
+            }
+
+          });
+        });
+          
+        // elias github
+        $("#elias").on("click", function(){
+          window.open('https://github.com/eliasnemr', '_blank'); 
+        });
+    });
+
+
+</script>
+
+    </body>
+</html>

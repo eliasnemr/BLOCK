@@ -13,6 +13,7 @@
 
 <body>
 <script type="text/javascript">
+    
     $(document).ready(function() {
 
         Minima.init();
@@ -21,10 +22,29 @@
         $(".collection").hide(300).show(3000);
         // tool info display
         $('.tooltipped').tooltip({delay: 50});
+        // copy
+        $('.copy').on("click", function(){
+          var hash = window.localStorage.getItem("relativeHash");
+          const el = document.createElement("textarea");
+          el.setAttribute('readonly', '');
+          el.style.position = 'absolute';
+          el.style.left = '-9999px';
+          el.value = hash;
+          document.body.appendChild(el);
+          el.select();
+          document.execCommand('copy');
+          
+          alert("Copied Hash.");
+        });
+        // elias github
+        $("#elias").on("click", function(){
+          window.open('https://github.com/eliasnemr', '_blank'); 
+        });
+
 
 
         var hash = localStorage.getItem("relativeHash");
-        $("#hash").html("<h5>Hash</h5><p class='truncate'>"+hash+"</p>");
+        $("#hash").html("<h5>Hash</h5><p class='truncate'>"+hash+"</p><i style='cursor: pointer;'class='material-icons copy'>content_paste</i>");
         
         Minima.cmd("txpowinfo "+hash, function(res){
             console.log(res);
@@ -46,27 +66,25 @@
     });
 </script>
 
-    <nav class="minima-blue-bg lighten-1" role="navigation">
-        <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">BLOCK</a>
-        <ul class="right hide-on-med-and-down">
-            <li><a href="#">About</a></li>
-        </ul>
-    
-        <ul id="nav-mobile" class="sidenav">
-            <li><a href="#">about</a></li>
-        </ul>
-        <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-        </div>
-    </nav>
-
-  <nav style="padding:10px;" class="minima-grey-bg">
-    <div class="nav-wrapper">
+  <div class="navbar-fixed">
+  <nav class="minima-black-bg lighten" role="navigation">
+  <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">
+    <img style="width: 110px; padding-top: 11px;" class="hide-on-small-only" src="assets/blocklogowhitetext.svg">
+    <img style="width: 80px; padding-top: 10px; padding-bottom: 0px;" class="hide-on-large-only" src="assets/blocklogowhitetext.svg">
+    </a>
+  </div>
+  </nav>
+  </div>
+  <div class="navbar-fixed">
+  <nav class="minima-grey-bg">
+    <div class="nav-wrapper container">
       <div class="col s12">
-        <a href="index.html" class="breadcrumb">Explorer</a>
-        <a href="#" class="breadcrumb" id="nav-blocks"></a>
+        <a href="index.html" class="breadcrumb explorer">Explorer</a>
+        <a href="#" class="breadcrumb explorer2" id="nav-blocks"></a>
       </div>
     </div>
   </nav>
+  </div>
     <!-- Details BODY INFO -->
     <div class="container">
         <div class="section">
@@ -75,27 +93,27 @@
         <div id="header"></div>
         <ul class="collection">
         <li id="height" class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Height number of current block in the chain"></li>
-        <li id="hash" class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Unique identifier used to make this block distinct"></li>
+        <li id="hash" class="collection-item tooltipped copy" data-html="true" data-position="top" data-tooltip="Unique identifier used to make this block distinct"></li>
         <li id="isblock" class="collection-item tooltipped"  data-html="true" data-position="top" data-tooltip="Minima TxPoW protocol allows a transaction to randomly be a block"></li>
         <li id="nonce" class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Random number which satisfies proof of work"></li>
         <li id="cascadelevels" class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Number of references to Superblocks of current block"></li>
         <li id="superparents-amnt" class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Number of Superparents of this block"></li>
         <li id="timestamp" class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Timestamp of when this block was mined"></li>
+
+
         </ul>
 
             </div>
         </div>
     </div>
-<footer class="page-footer minima-grey-bg">
+<footer class="page-footer minima-black-bg">
     <div class="container">
       <div class="row">
         <div class="col l6 s12">
-          <div class="row center">
-          <img style="width: 80px;" src="assets/Minima.svg">
+          <div class="left-align">
+          <img width="180" src="assets/minilogoblacklandscape.svg">
           </div>
-          <p class="grey-text text-lighten-4">Block is built for Minima with the incentive of allowing you to explore its chain.  Discover the heaviest leaf in the chain and traverse through.</p>
-
-
+          <p class="grey-text">Block is built for Minima with the incentive of allowing you to explore its chain.  Discover the heaviest leaf in the chain and traverse through.</p>
         </div>
         <div class="col l3 s12">
 
@@ -103,19 +121,19 @@
         <div class="col l3 s12">
           <h5 class="white-text">Connect</h5>
           <ul>
-            <li><a class="white-text" href="https://t.me/Minima_Global" target="_blank">Telegram</a></li>
-            <li><a class="white-text" href="https://twitter.com/Minima_Global" target="_blank">Twitter</a></li>
-            <li><a class="white-text" href="https://medium.com/minima-global" target="_blank">Medium</a></li>
-            <li><a class="white-text" href="https://github.com/spartacusrex99/Minima" target="_blank">Github</a></li>
-            <li><a class="white-text" href="https://minima.global/" target="_blank">Official Website</a></li>
+            <li><a class="grey-text" href="https://t.me/Minima_Global" target="_blank">Telegram</a></li>
+            <li><a class="grey-text" href="https://twitter.com/Minima_Global" target="_blank">Twitter</a></li>
+            <li><a class="grey-text" href="https://medium.com/minima-global" target="_blank">Medium</a></li>
+            <li><a class="grey-text" href="https://github.com/spartacusrex99/Minima" target="_blank">Github</a></li>
+            <li><a class="grey-text" href="https://minima.global/" target="_blank">Official Website</a></li>
 
           </ul>
         </div>
       </div>
     </div>
-    <div class="footer-copyright minima-blue-bg">
+    <div class="footer-copyright minima-grey-bg">
       <div class="container">
-      Made by <a class="orange-text text-lighten-3" href="https://github.com/eliasnemr" target="_blank">Elias</a>
+      <a id="elias" href="https://github.com/eliasnemr" target="_blank"><i style="color: white;"class="material-icons">code</i></a>
       </div>
     </div>
   </footer>
