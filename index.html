@@ -166,7 +166,7 @@
   // SQL to create the dB
   var INITSQL = "CREATE Table IF NOT EXISTS blocks ( height VARCHAR(160) NOT NULL, hash VARCHAR(160) NOT NULL, relayed VARCHAR(160) NOT NULL);"+
                 "SELECT DISTINCT height, hash, relayed FROM blocks";
-  // Run command to create the SQL Database
+/** Create SQL Table */
   function createSQL(){
     Minima.sql(INITSQL, function(resp){
       console.log(resp);
@@ -178,7 +178,7 @@
   }
   var hash = "";var height="";var relayed="";var count = 0;var parent = "";
   var POPULATEQUERY = "INSERT INTO blocks (height, hash, relayed) VALUES ";
-  // Recursive function to traverse through BST to find parents 
+// Recursive function to fetch prev 127 blocks from Minima to SQL
   function add127BlocksToSQL() {
     if(count == 0){
     hash = Minima.status['tip'];
@@ -187,7 +187,7 @@
     Minima.cmd("txpowinfo "+hash, function(res){
       relayed = res.response.txpow.header.timesecs;
     });
-      populateBlocksSQLTable(height, hash, relayed);
+      addRecord(height, hash, relayed);
     }
     // let's get the tip's parent to traverse through binary tree..
     Minima.cmd("txpowinfo "+hash, function(res){
@@ -199,7 +199,7 @@
         relayed = res.response.txpow.header.timesecs;
 
         // INSERT INTO to SQL table
-        populateBlocksSQLTable(height, hash, relayed);
+        addRecord(height, hash, relayed);
 
         // callback
         if(count < 128){
@@ -211,9 +211,9 @@
       });
     });
   }
-  // Get the recent last 128 blocks and populate local SQL IF they don't already exist
+/** ADD TO SQL */ 
   var CHECKQUERY = "SELECT DISTINCT height, hash, relayed FROM BLOCKS WHERE hash = '";
-  function populateBlocksSQLTable(height, hash, relayed) {
+  function addRecord(height, hash, relayed) {
     // check if hash already exists, if not populate..
     Minima.sql(CHECKQUERY+hash+"'", function(resp){
       // check if block already exists
@@ -233,7 +233,7 @@
       }
     });
   }
-  var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FROM blocks))";
+/** Get the tip added to SQL */
   function getNewBlockToSQL() {  
     // Get tip of chain 
     tip = Minima.status['tip'];
@@ -249,14 +249,14 @@
       // delete last row
       deleteMIN();
       // Add tip to SQL list  
-      populateBlocksSQLTable(height, tip, relayed);
+      addRecord(height, tip, relayed);
     }
       
     });
   }
-
+/** Delete last row w/ MIN(height) in sql */
+var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FROM blocks))";
   function deleteMIN() {
-    // Delete bottom of list 
     Minima.sql(DELETELASTQUERY, function(res){  
       if(res.status == true){
         console.log("H2 SQL : Deleted min record");
@@ -301,9 +301,13 @@
                   loadData(res);
                   } else {
                     // nothing found.. display to user 
-                    var markup = "<p class='center row nothing'>Nothing found with that address.</p>"
-                    $("#blocks-table").before(markup);
-                    $(".nothing").show(2000);
+                    var markup = "<p class='center row nothing'>Nothing found with that address.</p>";
+
+                    if (!$('.nothing').length){
+                      $("#example-table").before(markup);
+                      $(".nothing").show(2000); 
+                    }
+                    
                     setTimeout(function(){
                       $(".nothing").remove();
                     }, 5000);
@@ -347,8 +351,10 @@ $('#search-input').keypress(function(event){
                       } else {
                       // nothing found.. display to user 
                       var markup = "<p class='center row nothing'>Nothing found with that address.</p>"
-                      $("#blocks-table").before(markup);
-                      $(".nothing").show(2000);
+                      if (!$('.nothing').length){
+                        $("#example-table").before(markup);
+                        $(".nothing").show(2000); 
+                      }
                       setTimeout(function(){
                         $(".nothing").remove();
                       }, 5000);
@@ -369,7 +375,7 @@ $('#search-input').keypress(function(event){
 });
 
 function loadData(res){
-   $('#blocks-table tbody').empty();
+   $('#example-table').hide();
       var lastHeight = "";    
       $.each(res.response.txpowlist.reverse(), function(i, el){
         
@@ -392,11 +398,9 @@ function loadData(res){
       }
       lastHeight = height;
     })
-}
+    }
 
-
-
-});
+    });
 </script>
 
   <div class="navbar-fixed">
@@ -441,9 +445,6 @@ function loadData(res){
         <h5 class="header col s12 light subtitle">Minima's Block Explorer built for all your exploration needs.</h5> 
       </div>
 
-     
-
-
       <div class="container center">
         <div class="search-wrapper my-search-wrap">
           <input id="search-input" class="tooltipped center-align" placeholder="Search by Hex or Mini Address" type="text" data-html="true" data-position="top" data-tooltip="Limits to the last 300 blocks (Address for Input, Output or token ID)">
@@ -452,7 +453,9 @@ function loadData(res){
       </div>
       
       <!-- TABULATOR - BLOCKS table -->
-        <div id="example-table"></div>  
+        <div id="example-table"></div>
+        <div id="search-table" style="display:none;"></div>  
+
       </div>
     </div>
   
