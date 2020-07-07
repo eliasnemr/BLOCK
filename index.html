@@ -329,7 +329,8 @@ $('#search-input').keypress(function(event){
       var addr = $("#search-input").val().toLowerCase();
       // quit exit if nothing
       if(addr.length == ""){
-        location.reload();
+       $('#example-table').fadeIn(100);
+       $('#results-table').fadeOut(100);
       }
       Minima.cmd("txpowsearch input:"+addr, function(res){
         if(res.status == true){
@@ -375,7 +376,41 @@ $('#search-input').keypress(function(event){
 });
 
 function loadData(res){
-   $('#example-table').hide();
+
+      $('#example-table').fadeOut(100);
+
+       // Create a tabulator instance, and refer it to the div canvas
+       var resultstable = new Tabulator("#results-table", {
+            initialSort:[
+            {column:"HEIGHT", dir:"desc"}, //sort by this first
+            ],
+            index:"HEIGHT",
+            columns:[
+              {title: "Height", field: "HEIGHT", width: 100, sorter: "number", headerSort:true},
+              {title: "Hash", field: "HASH", headerSort:false},
+              {title: "Relayed", field:"RELAYED", width:150, headerSort:false}
+            ],
+            pagination:"local",
+            paginationSize:15,
+            layout:"fitColumns",
+            rowClick:function(e, row){
+              var clickedrow = row._row.data;
+          
+              //row - row component
+              console.log("USEREVENT: Clicked Row."+ clickedrow.HEIGHT);
+            
+              var relativeHash = clickedrow.HASH;
+              // add to localStorage to pass to details.html..
+              localStorage.setItem("relativeHash", clickedrow.HASH);
+
+              window.location.href = './details.html?'+relativeHash;
+              return false;
+
+            },
+          });
+        
+      $('#search-table').fadeIn(300);
+
       var lastHeight = "";    
       $.each(res.response.txpowlist.reverse(), function(i, el){
         
@@ -386,15 +421,10 @@ function loadData(res){
         var timeFrom2 = new Date(dt*1000).toISOString();
         var timeFrom = moment(timeFrom2).fromNow();
         
-        
-        var markup = "<tr>"+
-                      "<td>"+height+"</td>"+
-                      "<td>"+hash.substring(0, 80)+"...</td>"+
-                      "<td>"+timeFrom+"</td>"+
-                      "<td style='display:none !important;'>"+hash+"</td>"+
-                      "</p>";
+        var result = {HEIGHT: height, HASH: hash, RELAYED: timeFrom}
+
       if(lastHeight !== height){
-        $('#blocks-table tbody').append(markup);
+        resultstable.addData(result);
       }
       lastHeight = height;
     })
@@ -454,7 +484,7 @@ function loadData(res){
       
       <!-- TABULATOR - BLOCKS table -->
         <div id="example-table"></div>
-        <div id="search-table" style="display:none;"></div>  
+        <div id="results-table" style="display:none;"></div>  
 
       </div>
     </div>
