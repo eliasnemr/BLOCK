@@ -9,6 +9,7 @@
   <!-- CSS  -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
   <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="css/custom.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <link rel="icon" type="image/png" href="assets/blockicon.png" />
   <script src="js/jquery-3.5.1.min.js"></script>
 
@@ -16,11 +17,15 @@
 <body>
 <!-- Minima.js -->
 <script type="text/javascript">
+
   // global table objects
   var table;var tabledata = [];
+
   // Minima Event Manager
   window.addEventListener("load", function(){ 
+
     window.addEventListener("MinimaEvent", function(evt){
+
     //Deal with each message type
 		 		if(evt.detail.event == "connected"){
           console.log("Welcome to BLOCK!");
@@ -31,12 +36,7 @@
           // init table 
           initTable();
 
-		 			// set block # sub heading
-          getBlockNumber();
-
 			 	}else if(evt.detail.event == "newblock"){
-		 			// set last block text
-          getBlockNumber();
 
           // update SQL
           getNewBlockToSQL();
@@ -58,23 +58,30 @@
   function initTable() {
     $(document).ready(function(){
       Minima.sql("SELECT DISTINCT height, hash, relayed from blocks ORDER BY height desc", function(res){
-        console.log(res);
+
         // Create a tabulator instance, and refer it to the div canvas
           table = new Tabulator("#example-table", {
             initialSort:[
-            {column:"HEIGHT", dir:"desc"}, //sort by this first
+
+              {column:"HEIGHT", dir:"desc"}, //sort by this first
+
             ],
-            index:"HEIGHT",
-            height: 500,
-            columns:[
-              {title: "Height", field: "HEIGHT", width: 100, sorter: "number", headerSort:true},
-              {title: "Hash", field: "HASH", headerSort:false},
-              {title: "Relayed", field:"RELAYED", width:150, headerSort:false}
-            ],
-            pagination:"local",
-            paginationSize:15,
+            maxHeight: 530,
+            resizableColumns: false,
             layout:"fitColumns",
+            headerSort: false,
+            index:"HEIGHT",
+            columns:[
+
+              {title: "Height", field: "HEIGHT", width: 100, sorter: "number", cssClass: "height-column"},
+
+              {title: "Hash", field: "HASH"},
+
+              {title: "Relayed", field:"RELAYED", width:150}
+
+            ],
             rowClick:function(e, row){
+
               var clickedrow = row._row.data;
           
               //row - row component
@@ -85,38 +92,34 @@
               localStorage.setItem("relativeHash", clickedrow.HASH);
 
               window.location.href = './details.html?'+relativeHash;
+
               return false;
 
             },
           });
         
-          var temp = [];var count=0;
+          var temp = [];
+
         // Loop through the json rows arr and add..
           $.each(res.response.rows, function(i, el){
 
-            var dt = el.RELAYED;
-            var timeFrom2 = new Date((dt*1000)).toISOString();
-            var timeFrom = moment(timeFrom2).fromNow();
-            el.RELAYED = timeFrom;
-            
-            if(count <=127){
-              temp.push(el);
-              count++;
-            } else {
-              return;
-            }
+            temp.push(el);        
 
           });
-
+          
           /** SET Data to the Tabulator REF */
           table.setData(temp)
           .then(function(){
+
               //run code after table has been successfully updated
               console.log("TABULATOR: Added new data to the Table");
+
           })
           .catch(function(error){
+
               //handle error loading data
               console.log(error);
+
           });
       });
     });
@@ -125,36 +128,36 @@
   function getMin(arr, prop) {
     var min;
     for (var i=0 ; i<arr.length ; i++) {
+
         if (min == null || parseInt(arr[i][prop]) > parseInt(min[prop]))
+
             min = arr[i];
+
     }
     return min;
   }
 /** Update Tabulator Table with new blocks */
   function updateTableData() {
+    
     $(document).ready(function(){
+
         Minima.sql("SELECT DISTINCT height, hash, relayed from blocks ORDER BY height desc", function(res){
+
           // Loop through the json rows arr and add..
-          var temp = [];var count=0;
+          var temp = []; 
+
           $.each(res.response.rows, function(i, el){
-            // time-secs -> time-ago
-            var dt = el.RELAYED;
-            var timeFrom2 = new Date((dt*1000)).toISOString();
-            var timeFrom = moment(timeFrom2).fromNow();
-            el.RELAYED = timeFrom;
-            // push to temp arr
-            if(count <=127){
-              temp.push(el);
-              count++;
-            } else {
-              return;
-            }
+          
+              temp.push(el);        
+       
           });
           /** SET Data to the Tabulator REF as a promise */
           table.replaceData(temp)
           .then(function(){
+
               //run code after table has been successfully updated
               console.log("TABULATOR: Added new data to the Table");
+
           })
           .catch(function(error){
               //handle error loading data
@@ -171,8 +174,9 @@
     Minima.sql(INITSQL, function(resp){
       console.log(resp);
       if(!resp.status){
+
         alert("Something went wrong with SQL DB+\n\n"+resp.message);
-        console.log(JSON.stringify(resp, null, 2));
+
       }
     });
   }
@@ -180,30 +184,44 @@
   var POPULATEQUERY = "INSERT INTO blocks (height, hash, relayed) VALUES ";
 // Recursive function to fetch prev 127 blocks from Minima to SQL
   function add127BlocksToSQL() {
+
     if(count == 0){
+
     hash = Minima.status['tip'];
+
     height = Minima.status['lastblock'];
-    // do this to get time in seconds..
+
+    // do this to get timesecs
     Minima.cmd("txpowinfo "+hash, function(res){
+
       relayed = res.response.txpow.header.timesecs;
+
     });
-      addRecord(height, hash, relayed);
+
+      addRecord(height, hash, relayed); // h2 sql
+
     }
     // let's get the tip's parent to traverse through binary tree..
     Minima.cmd("txpowinfo "+hash, function(res){
+
       // get block's parent block
       parent = res.response.txpow.header.superparents[0].parent;
+
       Minima.cmd("txpowinfo "+parent, function(res) {
+
         hash = res.response.txpow.txpowid;
+
         height = res.response.txpow.header.block;
+
         relayed = res.response.txpow.header.timesecs;
 
-        // INSERT INTO to SQL table
-        addRecord(height, hash, relayed);
+        addRecord(height, hash, relayed); // h2 sql
 
         // callback
         if(count < 128){
+
           count++;
+
           add127BlocksToSQL();
         } else {
           return 0;
@@ -212,44 +230,66 @@
     });
   }
 /** ADD TO SQL */ 
-  var CHECKQUERY = "SELECT DISTINCT height, hash, relayed FROM BLOCKS WHERE hash = '";
+  var CHECKQUERY = "SELECT DISTINCT height, hash, relayed FROM blocks WHERE hash = '";
   function addRecord(height, hash, relayed) {
+
     // check if hash already exists, if not populate..
     Minima.sql(CHECKQUERY+hash+"'", function(resp){
+
       // check if block already exists
       if(resp.response.status == true && resp.response.count == 0){
-        // add to sql 
-        Minima.sql(POPULATEQUERY+"("+height+",'"+hash+"','"+relayed+"')", function(resp){
+
+            // convert time to timeago
+            relayed = moment(relayed*1000, "x").format("DD MMM YYYY hh:mm:ss a"); //parse string
+            
+            relayed = moment(relayed).fromNow();
+        
+            // add to sql 
+        Minima.sql(POPULATEQUERY+"('"+height+"','"+hash+"','"+relayed+"')", function(resp){
+
           // something went wrong, stop
           if(!resp.status){
+
             alert("H2 SQL: Something went wrong adding the new record+\n\n"+resp.message);
+
           // otherwise insert..
           } else {
+
             console.log("H2 SQL: Pushed a new block to SQL Database.");
+
           }
         });
       } else {
+
         console.log("H2 SQL: Block already exists in SQL Database!");
+
       }
     });
   }
 /** Get the tip added to SQL */
   function getNewBlockToSQL() {  
+
     // Get tip of chain 
     tip = Minima.status['tip'];
+
     // Check if this block exists 
     Minima.sql(CHECKQUERY+tip+"'", function(resp){
     if(resp.response.status == true && resp.response.count == 0){
 
       height = Minima.status['lastblock'];
+
       // only way to get time in secs for now...
       Minima.cmd("txpowinfo "+tip, function(res){
+
         relayed = res.response.txpow.header.timesecs;
+
       });
       // delete last row
       deleteMIN();
+
       // Add tip to SQL list  
       addRecord(height, tip, relayed);
+
     }
       
     });
@@ -267,12 +307,25 @@ var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FR
 
   // JQUERY Helpful Functions
   $(document).ready(function() {
+    
+    if(localStorage.getItem('mode') == 'dark'){
+      $('body').addClass("dark");
+      $('.dark-toggle').find('i').text('brightness_high');
+      $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
+    } else if (localStorage.getItem('mode') == 'light') {
+      $('body').removeClass("dark");
+      $('.dark-toggle').find('i').text('brightness_4');
+      $('.body-icon').attr("src", "assets/blocklogo.svg");
+    }
+
     // Materialize tooltip
     $('.tooltipped').tooltip({delay: 50});
     
     // elias github
     $("#elias").on("click", function(){
+
       window.open('https://github.com/eliasnemr', '_blank'); 
+
     });
 
   $("#searchBtn").on("click", function(){
@@ -280,36 +333,54 @@ var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FR
     var addr = $("#search-input").val().toLowerCase();
         // quit exit if nothing
         if(addr.length == ""){
-          location.reload();
-      }
+
+          $('#example-table').fadeIn(100);
+
+          $('#results-table').fadeOut(100);
+
+  }
+
   Minima.cmd("txpowsearch input:"+addr, function(res){
     if(res.status == true){
       if(res.response.txpowlist.length > 0){
+
         // something found.. load it
         loadData(res);
+
       } else {
         Minima.cmd("txpowsearch output:"+addr, function(res){
           if(res.status == true){
             if(res.response.txpowlist.length > 0){
+
               // something found.. load it
               loadData(res);
+
             } else {
               Minima.cmd("txpowsearch tokenid:"+addr, function(res){
+
                 if(res.status == true){
                   if(res.response.txpowlist.length > 0){
+
                   // something found.. load it
                   loadData(res);
+
                   } else {
+
                     // nothing found.. display to user 
                     var markup = "<p class='center row nothing'>Nothing found with that address.</p>";
 
                     if (!$('.nothing').length){
+
                       $("#example-table").before(markup);
+
                       $(".nothing").show(2000); 
+
                     }
                     
                     setTimeout(function(){
+
                       $(".nothing").remove();
+
                     }, 5000);
                   }
                 }
@@ -324,37 +395,54 @@ var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FR
 
 // Detect enter key for input 
 $('#search-input').keypress(function(event){
+
   var keycode = (event.keyCode ? event.keyCode : event.which);
+
   if(keycode == '13'){
+
       var addr = $("#search-input").val().toLowerCase();
       // quit exit if nothing
       if(addr.length == ""){
+
        $('#example-table').fadeIn(100);
+
        $('#results-table').fadeOut(100);
+
       }
       Minima.cmd("txpowsearch input:"+addr, function(res){
         if(res.status == true){
           if(res.response.txpowlist.length > 0){
+
               // something found.. load it
               loadData(res);
+
           } else {
             Minima.cmd("txpowsearch output:"+addr, function(res){
               if(res.status == true){
                 if(res.response.txpowlist.length > 0){
+
                   // something found.. load it
                     loadData(res);
+
                 } else {
                   Minima.cmd("txpowsearch tokenid:"+addr, function(res){
                     if(res.status == true){
                       if(res.response.txpowlist.length > 0){
+
                       // something found.. load it
                         loadData(res);
+
                       } else {
+                      
                       // nothing found.. display to user 
-                      var markup = "<p class='center row nothing'>Nothing found with that address.</p>"
+                      var markup = "<p class='center row nothing'>Nothing found with that address.</p>";
+
                       if (!$('.nothing').length){
+
                         $("#example-table").before(markup);
+
                         $(".nothing").show(2000); 
+
                       }
                       setTimeout(function(){
                         $(".nothing").remove();
@@ -377,23 +465,49 @@ $('#search-input').keypress(function(event){
 
 function loadData(res){
 
+      var results = 0;
+      
+      results = res.response.txpowlist.length;
+
+      if(results == 1){
+        var found = "<p class='center row something'>Found "+ results +" result!</p>"
+      } else if (results > 1){
+
+        var found = "<p class='center row something'>Found "+ results +" results!</p>";
+
+      }
+
+      if (!$('.something').length){
+
+        $("#results-table").before(found);
+
+      }
+      setTimeout(function(){
+        $(".something").remove();
+      }, 3000);
+
       $('#example-table').fadeOut(100);
 
        // Create a tabulator instance, and refer it to the div canvas
        var resultstable = new Tabulator("#results-table", {
             initialSort:[
-            {column:"HEIGHT", dir:"desc"}, //sort by this first
+            { column:"HEIGHT", dir:"desc" }, //sort by this first
             ],
             index:"HEIGHT",
             columns:[
-              {title: "Height", field: "HEIGHT", width: 100, sorter: "number", headerSort:true},
-              {title: "Hash", field: "HASH", headerSort:false},
-              {title: "Relayed", field:"RELAYED", width:150, headerSort:false}
+
+              {title: "Height", field: "HEIGHT", width: 100, cssClass:"height-column"},
+
+              {title: "Hash", field: "HASH"},
+
+              {title: "Relayed", field:"RELAYED", width:150}
             ],
+            headerSort: false,
             pagination:"local",
             paginationSize:15,
             layout:"fitColumns",
             rowClick:function(e, row){
+
               var clickedrow = row._row.data;
           
               //row - row component
@@ -404,30 +518,39 @@ function loadData(res){
               localStorage.setItem("relativeHash", clickedrow.HASH);
 
               window.location.href = './details.html?'+relativeHash;
+
               return false;
 
             },
           });
         
-      $('#search-table').fadeIn(300);
+     
 
       var lastHeight = "";    
       $.each(res.response.txpowlist.reverse(), function(i, el){
         
         var height = el.inblock;
+
         var hash = el.txpow.txpowid;
+
         var relayed = el.txpow.header.timesecs;
+
         var dt = relayed;
+
         var timeFrom2 = new Date(dt*1000).toISOString();
+
         var timeFrom = moment(timeFrom2).fromNow();
         
         var result = {HEIGHT: height, HASH: hash, RELAYED: timeFrom}
 
       if(lastHeight !== height){
+
         resultstable.addData(result);
+
       }
       lastHeight = height;
-    })
+    });
+    
     }
 
     });
@@ -437,14 +560,24 @@ function loadData(res){
   <nav class="menu minima-black-bg" data-target="menu" role="navigation">
     <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">
     <img style="width: 110px; padding-top: 11px;" class="hide-on-small-only" src="assets/blocklogowhitetext.svg">
-    <img style="width: 80px; padding-top: 10px; padding-bottom: 0px;" class="hide-on-large-only" src="assets/blocklogowhitetext.svg">
+    <img style="width: 80px; padding-top: 10px; padding-bottom: 0px;" class="hide-on-large-only hide-on-med-only" src="assets/blocklogowhitetext.svg">
     </a>
 
 
-    <ul class="right minima-blue-txt">
+    <ul id="slide-out" class="right minima-blue-txt">
       <li>
         <a href="charts.html">Charts</a>
       </li>
+      <li><a 
+      class="dark-toggle" 
+      href="#" 
+      title="Dark/light">
+       <i class="material-icons left">brightness_4</i></a>
+      </li>
+      </ul>
+    <ul>
+      
+
     </ul>
     </div>
              
@@ -453,7 +586,7 @@ function loadData(res){
   </div>
 
   <div class="navbar-fixed">
-  <nav class="menu minima-grey-bg" data-target="menu">
+  <nav class="menu minima-grey-bg explorer-wrapper" data-target="menu">
     <div class="nav-wrapper container">
       <div class="col s12">
         <a href="index.html" class="breadcrumb explorer">Explorer</a>
@@ -462,18 +595,13 @@ function loadData(res){
   </nav>
   </div>
   <!-- Body INFO -->
-  <div class="section no-pad-bot" id="index-banner">
-    <div class="container">
+  <div class="section" id="index-banner">
+    <div class="container" >
       <br><br>
       <div class="row center">
-        <img style="width: 300px;" src="assets/blocklogo.svg">
+        <img class="body-icon responsive-img" src="assets/blocklogo.svg">
       </div>
-        <!-- Block number -->
-        <div class="row center bold" style="font-weight: 400;" id="blocknumber">
-        </div>
-      <div class="row center">
-        <h5 class="header col s12 light subtitle">Minima's Block Explorer built for all your exploration needs.</h5> 
-      </div>
+        
 
       <div class="container center">
         <div class="search-wrapper my-search-wrap">
@@ -481,90 +609,25 @@ function loadData(res){
           <i id="searchBtn" class="material-icons search">search</i>
         </div>
       </div>
-      
-      <!-- TABULATOR - BLOCKS table -->
-        <div id="example-table"></div>
-        <div id="results-table" style="display:none;"></div>  
 
       </div>
+    </div>
+
+    <div class="section" id="index-banner">
+      <div class="container center">
+        <div class="row">
+          
+          <!-- TABULATOR - BLOCKS table -->
+          <div id="example-table"></div>
+          <div id="results-table" style="display:none;"></div>  
+        
+        </div>
+      </div>
+
     </div>
   
-    <!-- Become a Minima User advertisement -->
-    <div class="section hide-on-small-only show-on-large">
-    <div class="row">
-        <div class="col s6 offset-s3">
-          <div class="card">
-            <div class="card-image">
-              <img src="assets/footer.jpg">
-              <span class="card-title">Minima invites all.  Become a validating node.</span>
-          </div>
-          <div class="card-content">
-              <p>Becoming a participitant in our network requires a quick installation on your native device.  Mobile, Desktop, Server or all.  Your choice.  Click below to join the network.</p>
-          </div>
-          <div class="card-action">
-            <a href="https://github.com/spartacusrex99/Minima" target="_blank">Become a Minima User.</a>
-          </div>
-        </div>
-        </div>
-      </div>
-    </div>
+    
 
-    <div class="section hide-on-large-only hide-on-med-only">
-    <div class="row">
-        <div class="col s12 m7">
-          <div class="card">
-            <div class="card-image">
-              <img src="assets/footer.jpg">
-              <span class="card-title">Minima invites all.  Become a validating node.</span>
-          </div>
-          <div class="card-content">
-              <p>Becoming a participitant in our network is as easy as installing the app on any device you own and just running it.  That's all.  Click below to join the network.</p>
-          </div>
-          <div class="card-action">
-            <a href="https://github.com/spartacusrex99/Minima" target="_blank">Become a Minima User.</a>
-          </div>
-        </div>
-        </div>
-      </div>
-    </div>
-
-
-  <div class="container">
-    <div class="section">
-
-      <!--   Icon Section   -->
-      <div class="row">
-        <div class="col s12 m4">
-          <div class="icon-block">
-            <h2 class="center light-blue-text"><i class="material-icons">flash_on</i></h2>
-            <h5 class="center">Minima's Official Wallet</h5>
-
-            <p class="light">A complete Minima Core Wallet built for Minima Node V1.0.  Learn more <a href="http://mifi.minima.global/minidapps.html" target="_blank">here.</a></p>
-          </div>
-        </div>
-
-        <div class="col s12 m4">
-          <div class="icon-block">
-            <h2 class="center light-blue-text"><i class="material-icons">group</i></h2>
-            <h5 class="center">MiniDAPP Community</h5>
-
-            <p class="light">Want to build your very own MiniDAPP?  By utilizing Minima's native scripting language, you can build ontop of the MiniDAPP stack.  Learn more <a href="http://mifi.minima.global/developers.html" target="_blank">here.</a></p>
-          </div>
-        </div>
-
-        <div class="col s12 m4">
-          <div class="icon-block">
-            <h2 class="center light-blue-text"><i class="material-icons">settings</i></h2>
-            <h5 class="center">The Protocol</h5>
-
-            <p class="light">Minima is built in the perspective of keeping the chain truely decentralised as it scales.  Every user is a node.  Every node is mobile.  Learn more about the protocol <a href="https://minima.global/minima-whitepaper-v6.pdf" target="_blank">here.</a></p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-    <br><br>
-  </div>
 
   <footer class="page-footer minima-black-bg">
     <div class="container">
@@ -608,5 +671,27 @@ function loadData(res){
   <script src="js/moment.js"></script>
   <script src="https://d3js.org/d3-array.v2.min.js"></script>
   <script src="js/materialize-pagination.js"></script>
+
+  <script>
+  $(document).ready(function() {
+
+    // SWAP ICON ON CLICK
+    // Source: https://stackoverflow.com/a/34254979/751570
+    $('.dark-toggle').on('click',function(){
+      if ($(this).find('i').text() == 'brightness_4'){
+          $(this).find('i').text('brightness_high');
+          $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
+          $('body').addClass("dark");
+          localStorage.setItem('mode', 'dark');
+      } else {
+          $(this).find('i').text('brightness_4');
+          $('.body-icon').attr("src", "assets/blocklogo.svg");
+          $('body').removeClass("dark");
+          localStorage.setItem('mode', 'light');
+      }
+    });
+
+  });
+  </script>
   </body>
 </html>

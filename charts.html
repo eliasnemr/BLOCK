@@ -8,8 +8,10 @@
   <!-- CSS  -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
   <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="css/custom.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <script src="js/jquery-3.5.1.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+
 </head>
 
 <body>
@@ -17,7 +19,7 @@
   <nav class="minima-black-bg lighten" role="navigation">
   <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">
     <img style="width: 110px; padding-top: 11px;" class="hide-on-small-only" src="assets/blocklogowhitetext.svg">
-    <img style="width: 80px; padding-top: 10px; padding-bottom: 0px;" class="hide-on-large-only" src="assets/blocklogowhitetext.svg">
+    <img style="width: 80px; padding-top: 10px; padding-bottom: 0px;" class="hide-on-large-only hide-on-med-only" src="assets/blocklogowhitetext.svg">
     </a>
   </div>
   </nav>
@@ -80,52 +82,88 @@
 
   $(document).ready(function() {
 
-        
         window.addEventListener("load", function(){
+
+
           // init Minima 
           Minima.init();
 
           window.addEventListener("MinimaEvent", function(evt){
+
             if(evt.detail.event == "connected"){
-              console.log('Connected to Minima.')
-              // add every block
+
+              console.log('Connected to Minima.');
+              // H2DB: Create SQL Table(s)
+              createSQL();
+             
+              var mBlocks = [];
+              // print out every TxPoW available using printdb
               Minima.cmd("printdb txpow", function(res){
-                var zBlocks = res.response.txpowdb;
-                var mBlocks = [];
-
-                var time = zBlocks[1].txpow.header.timesecs;
+                console.log(res);
                 
-                var formattime = new Date((time*1000)).toISOString();
-                console.log(formattime);
-
+                // loop through every txpow from txpowdb
+                $.each(res.response.txpowdb, function(i, el){
+                  // H2DB: Populate the table(s)
                 
-                $.each(zBlocks, function(i, el){
-                  mBlocks.push(
-                    {
-                      block: el.txpow.header.block,
-                      relayed: el.txpow.header.timesecs
-                    });
+                  populateTable(el);
                   
+
                 });
+                var labels; var data;
+              Minima.sql("SELECT * FROM blockstime ORDER BY height DESC", function(res){
+                console.log(res);
+                
+                mBlocks = res.response.rows;
 
-                console.log(mBlocks[0].block);
-
+                //map the key/pair to 1 var
+                labels = mBlocks.map(function(e) {
+                  return e.relay;
+                });
+                data = mBlocks.map(function(e) {
+                  return e.block;
+                });
+              });
+                
                 var ctx = $("#blockvstimeChart");
-                var myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                  labels: ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov"],
-                  datasets: [
-                    {
-                      label: "block",
-                      data: mBlocks.block,
-                    }
-                  ]        
-                  },
-                });
 
+                 var myChart = new Chart(ctx, {
+                 type: 'line',
+                 data: {
+                   labels: labels,// add date of relayed blocks here.
+                   datasets: [{
+                       label: 'Block Height',
+                       data: data, // add block height here relative to date
+                       backgroundColor: [
+                           'rgba(255, 99, 132, 0.2)',
+                           'rgba(54, 162, 235, 0.2)',
+                           'rgba(255, 206, 86, 0.2)',
+                           'rgba(75, 192, 192, 0.2)',
+                           'rgba(153, 102, 255, 0.2)',
+                           'rgba(255, 159, 64, 0.2)'
+                       ],
+                       borderColor: [
+                           'rgba(255,99,132,1)',
+                           'rgba(54, 162, 235, 1)',
+                           'rgba(255, 206, 86, 1)',
+                           'rgba(75, 192, 192, 1)',
+                           'rgba(153, 102, 255, 1)',
+                           'rgba(255, 159, 64, 1)'
+                       ],
+                       borderWidth: 1
+                     }]
+                   },
+                   options: {
+                       scales: {
+                           yAxes: [{
+                               ticks: {
+                                   beginAtZero:true
+                               }
+                           }]
+                       }
+                   }
+                 });
+                
 
-                console.log(mBlocks);
               });
             }
 
@@ -138,8 +176,56 @@
         });
     });
 
+  // H2DB::SQL to create the dB
+  var INITSQL = "CREATE Table IF NOT EXISTS blockstime ( height VARCHAR(160) NOT NULL, relayed VARCHAR(160) NOT NULL)";
+  /** Create SQL Table */
+  function createSQL(){
+    Minima.sql(INITSQL, function(resp){
+      console.log(resp);
+      if(!resp.status){
+
+        alert("Something went wrong with SQL DB+\n\n"+resp.message);
+
+      }
+    });
+  }
+  // H2DB::Add all records from printdb to SQL table
+  var POPULATE = "INSERT INTO blockstime (height, relayed) VALUES ";
+  var CHECKQUERY = "SELECT height, relayed FROM blockstime WHERE height = '";
+  function populateTable(el){
+
+    var block = el.txpow.header.block;
+    // get timesecs
+    var timeSecs = el.txpow.header.timesecs;
+    // convert timesecs from UTC to desired format..
+    var relay = moment(new Date((timeSecs * 1000))).format('MMM:DD HH:MM');
+
+    Minima.sql(CHECKQUERY+block+"'", function(res){
+      // check if block already exists
+      if(res.response.status == true && res.response.count == 0){
+
+        Minima.sql(POPULATE+"('"+block+"','"+relay+"')", function(res){
+          if(res.status == false){
+            
+            alert("H2DB: Something went wrong with inserting record.\n\n"+res.message);
+
+          }else {
+
+            console.log("H2DB: Pushed new record to table.");
+
+          }
+        });
+      } else {
+
+        console.log("H2DB: Block already exists on this table.");
+
+      }
+    });
+
+  }
+
 
 </script>
 
-    </body>
+  </body>
 </html>
