@@ -16,24 +16,46 @@
 <script type="text/javascript">
     
     $(document).ready(function() {
-        // check for mode
-        if(localStorage.getItem('mode') == 'dark'){
-          $('body').addClass("dark");
-        } else if (localStorage.getItem('mode') == 'light') {
-          $('body').removeClass("dark");
-        }
         
+      // check what mode is set.
+        darkmode();
 
         Minima.init();
         
-        // Display data nicely
-        $(".collection").hide(300).show(3000);
-
         // tool info display
-        $('.tooltipped').tooltip({delay: 50});
+        $('.tooltipped').tooltip();
 
-        // copy
-        $('.copy').on("click", function(){
+        // clipboard listener
+        copyHash();
+
+        // elias github
+        $("#elias").on("click", function(){
+          window.open('https://github.com/eliasnemr', '_blank'); 
+        });
+
+        // fill details data
+        setDetails();
+
+        $(document).on("click", ".pulse", function(){
+          $('.tip').toggle("slide");
+        });     
+
+    });
+
+    function darkmode() {
+      // check for mode
+      if(localStorage.getItem('mode') == 'dark'){
+
+                $('body').addClass("dark");
+
+              } else if (localStorage.getItem('mode') == 'light') {
+
+                $('body').removeClass("dark");
+
+              }
+    }
+    function copyHash() {
+      $('.copy').on("click", function(){
 
           var hash = window.localStorage.getItem("relativeHash");
 
@@ -56,23 +78,12 @@
           alert("Copied Hash.");
 
         });
-        // elias github
-        $("#elias").on("click", function(){
-
-          window.open('https://github.com/eliasnemr', '_blank'); 
-
-        });
-
-
-
-        var hash = localStorage.getItem("relativeHash");
+    }
+    function setDetails() {
+      var hash = localStorage.getItem("relativeHash");
 
         $("#hash").html(hash);
 
-        // check width of hash
-        // if($('#hash').width() > 300){
-        //   $('#hash-wrapper').height(80);
-        // }
         var width = $('#hash').width();
         console.log(width);
         
@@ -104,26 +115,139 @@
 
         $("#header").html("Block "+ res.response.txpow.header.block);
 
-        // if(res.response.txpow.body.txn.inputs.length > 0 && res.response.txpow.body.txn.inputs[0].coinid == "0xFEED50FEED50FEED50FEED50" ){
-        //   console.log("This is a FEED TXN");
 
-        //   $('.collection').after("<p>This is a FEEDING TXN</p>");
+        if(res.response.txpow.body.txn.inputs.length > 0 && res.response.txpow.body.txn.inputs[0].coinid == "0xFEED50FEED50FEED50FEED50" ){
 
-        // } else if(res.response.txpow.body.txn.inputs.length > 0){
-        //   console.log("This is a normal TXN");
+          var tmpl = $.templates('#txn-template');
+
+          var inputs = []; var outputs = []; var input_index; var output_index; var txn_index;
+
+          $.each(res.response.txpow.body.txn.inputs, function(i, el){
+            inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount});
+          });
+
+          $.each(res.response.txpow.body.txn.outputs, function(i, el){
+            outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount});
+          });
           
-        //   $('.collection').after("<p>This is a normal TXN</p>");
+          // create txn
+          var txn = { txn_index: 0, inputs: inputs, outputs: outputs };
+
+          // render
+          var html = tmpl.render(txn);
+
+          $('.collection').after(html);
+
+        } else if(res.response.txpow.body.txn.inputs.length > 0){
+
+          var tmpl = $.templates('#txn-template');
+
+          var inputs = []; var outputs = []; var input_index; var output_index; var txn_index;
+
+          $.each(res.response.txpow.body.txn.inputs, function(i, el){
+            inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount});
+          });
+
+          $.each(res.response.txpow.body.txn.outputs, function(i, el){
+            outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount});
+          });
+          
+          // create txn
+          var txn = { txn_index: txn_index, inputs: inputs, outputs: outputs };
+          // render
+          var html = tmpl.render(txn);
+
+          $('.collection').after(html);
 
           
-        // } else {
-        //   console.log('This is just a pulse..');
+        } else {
 
-        //   $('.collection').after("<p>Pulse TXN</p>");
-        // }
+          $('.collection').after("<div class='row center'><a class='btn-small pulse tooltipped' data-html='true' data-position='right' data-tooltip='TEST'>Pulse TXN<i class='material-icons tip'>show_chart</i></a><p class='tip' style='display:none;'>This transaction is a Pulse, so it has no inputs and outputs.</p></div>");
+        
+          }
 
 
         });
-    });
+    }
+
+</script>
+<script id="txn-template" type="text/x-jsrender">
+  <!-- TRANSACTIONS -->
+  <div class="row txn" id="txn-template">
+
+    <div class="col s8">
+      <p>TXN {{:txn_index}}</p>
+    </div>
+
+    <div class="col s3">
+      <p>
+        <a class="waves-effect waves-light btn-flat">Details <i class=" material-icons right " style="font-size: 15px;">call_received</i></a>
+      </p>
+    </div>
+
+
+    <div class="container txn-container">
+      <div class="row">
+
+      {{for inputs}}
+        <div class="col s4 input">
+          <div class="row">
+            <div class="col s10">
+              <p id="index tooltipped" data-html="true" data-position="top" data-tooltip="Input Index">#{{:input_index}}</p>
+              <p class="address">{{:inAddress}}</p>
+            </div>
+            <div class="col s2 amnt">
+              <p>{{:inAmount}}</p>
+            </div>
+            <!-- Details -->
+          </div>
+        </div>
+      {{/for}}
+
+      <div class="col s2 chevron">
+        <p class="center"> <i class="material-icons ">chevron_right</i> </p>
+      </div>
+
+      
+      <div class="col s6 output">
+        {{for outputs}}
+        <div class="row">
+          <div class="col s10">
+            <p id="index tooltipped" data-html="true" data-position="top" data-tooltip="Output Index">#{{:output_index}}</p>
+            <p class="address"> {{:outAddress}} </p>
+          </div>
+          <div class="col s2 amnt">
+            <p>{{:outAmount}}</p>
+          </div>
+        </div>
+        <div class="divider"></div>
+      {{/for}}
+      </div>
+
+      </div>
+    </div>
+
+</div>
+
+</script>
+
+<script id="txn-inputs" type="text/x-jsrender">
+{{for inputs}}
+      
+      <div class="col s4 input">
+        <div class="row">
+          <div class="col s10">
+            <p id="index tooltipped" data-html="true" data-position="top" data-tooltip="Input Index">#{{:input_index}}</p>
+            <p class="address">{{:inAddress}}</p>
+          </div>
+          <div class="col s2 amnt">
+            <p>{{:inAmount}}</p>
+          </div>
+          <!-- Details -->
+        </div>
+      </div>
+    
+    {{/for}}  
 </script>
 
   <div class="navbar-fixed">
@@ -196,74 +320,6 @@
             </div>
           </li>
         </ul>
-
-
-        <!-- TRANSACTIONS -->
-        <div class="row txn">
-
-          <div class="col s8">
-            <p>TXN #0</p>
-          </div>
-
-          <div class="col s3">
-            <p>
-              <a class="waves-effect waves-light btn-flat">Details <i class=" material-icons right " style="font-size: 15px;">call_received</i></a>
-            </p>
-          </div>
-
-
-          <div class="container txn-container">
-            <div class="row">
-
-            <div class="col s4 input">
-              <div class="row">
-                <div class="col s10">
-                  <p id="index">#0</p>
-                  <p class="address">0x37598223461671B02B6B423F454E437CBDC48EE28EDCA43837C33EEF570C8937</p>
-                </div>
-                <div class="col s2 amnt">
-                  <p>50</p>
-                </div>
-                <!-- Details -->
-              </div>
-            </div>
-
-            <div class="col s2 chevron">
-              <p class="center"> <i class="material-icons ">chevron_right</i> </p>
-            </div>
-
-
-            <div class="col s6 output">
-              <div class="row">
-                <div class="col s10">
-                  <p id="index">#0</p>
-                  <p class="address"> 0x5D41AAE35966C5139AC53DCE9865492110B7ADAF6E86EF9E0B926806FF11A5D3 </p>
-                </div>
-                <div class="col s2 amnt">
-                  <p>25</p>
-                </div>
-                
-                <!-- Details -->
-              </div>
-              <div class="divider"></div>
-              <div class="row">
-                <div class="col s10">
-                  <p style="font-size: 12px;">#1</p>
-                  <p class="address"> 0x5D41AAE35966C5139AC53DCE9865492110B7ADAF6E86EF9E0B926806FF11A5D3 </p>
-                </div>
-                <div class="col s2 amnt">
-                  <p>25</p>
-                </div>
-     
-                <!-- Details -->
-                </div>
-              </div>
-            </div>
-          </div>
-          
-
-        </div>
-
         
 
             </div>
@@ -303,7 +359,7 @@
     
 
 <!--  Scripts-->
-<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.7/jsrender.min.js"></script>
 <script src="js/bin/materialize.js"></script>
 <script src="js/Minima/minima.js"> </script>
 <script src="js/moment.js"></script>

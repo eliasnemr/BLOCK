@@ -234,10 +234,13 @@
     font-size: 12px;
   }
   .txn-container {
-    width: 90% !important;
+    width: 96% !important;
   }
   .divider {
     border-color: #2D2D31 !important;
+  }
+  .pulse {
+    padding-bottom: 40px;
   }
   
 
