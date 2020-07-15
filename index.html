@@ -102,7 +102,7 @@
 
         // Loop through the json rows arr and add..
           $.each(res.response.rows, function(i, el){
-
+            
             temp.push(el);        
 
           });
@@ -201,7 +201,7 @@
       addRecord(height, hash, relayed); // h2 sql
 
     }
-    // let's get the tip's parent to traverse through binary tree..
+    // let's get the tip's parent to traverse through..
     Minima.cmd("txpowinfo "+hash, function(res){
 
       // get block's parent block
@@ -239,10 +239,16 @@
       // check if block already exists
       if(resp.response.status == true && resp.response.count == 0){
 
+        // ensure that relayed time is changed..
+        return new Promise(function(resolve, reject){
             // convert time to timeago
             relayed = moment(relayed*1000, "x").format("DD MMM YYYY hh:mm:ss a"); //parse string
             
             relayed = moment(relayed).fromNow();
+
+            resolve(relayed);
+        });
+
         
             // add to sql 
         Minima.sql(POPULATEQUERY+"('"+height+"','"+hash+"','"+relayed+"')", function(resp){
