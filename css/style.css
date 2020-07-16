@@ -8154,13 +8154,15 @@ body.dark .tabulator-cell {
   color: #E2E2E2 !important;
 }
 body.dark .tabulator-row-even {
+  border-top: 1px #22242c solid !important;
   background-color: #202123 !important;
 }
 body.dark .tabulator-row-odd {
+  border-top: 1px #22242c solid !important;
   background-color: #202123 !important;
 }
 body.dark .tabulator .tabulator-row.tabulator-selectable:hover {
-  background-color: #212326 !important;
+  background-color: #343a40 !important;
   cursor: pointer;
 }
 body.dark input {

@@ -110,7 +110,7 @@
 
         $("#cascadelevels").html(res.response.txpow.header.cascadelevels);
 
-        $("#superparents-amnt").html(res.response.txpow.header.superparents.length);
+        $("#superparents-amnt").html(res.response.txpow.superblock);
 
         $("#timestamp").html(res.response.txpow.header.date.substring(4, 30));
 
@@ -313,14 +313,14 @@
             </a>
             </div>
           </li>
-          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Number of references to Superblocks of current block">
+          <!-- <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Number of references to Superblocks of current block">
             <div>Cascade Levels
               <a href="#!" id="cascadelevels" class="secondary-content">
               </a>
           </div>
-           </li>
+           </li> -->
           <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Number of Superparents of this block">
-            <div>Superparent blocks
+            <div>Superblock Level
               <a href="#!" id="superparents-amnt" class="secondary-content">
           </a>
         </div>

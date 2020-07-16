@@ -67,20 +67,21 @@
 
             ],
             maxHeight: 660,
+            layout: "fitColumns",
             resizableColumns: false,
-            layout:"fitColumns",
+            responsiveLayout:true,
             headerSort: false,
             index:"HEIGHT",
             columns:[
 
-              {title: "Height", field: "HEIGHT", width: 90, sorter: "number", cssClass: "height-column"},
+              {title: "Height", field: "HEIGHT", width:80, sorter: "number", cssClass: "height-column"},
 
-              {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
+               {title: "Hash", field: "HASH", widthGrow:4, formatter:function(cell, formatterParams){
                 var hash = cell.getData();
-                hash = hash.HASH.substring(0, 1) + "..." + hash.HASH.substring(6, 80);
+                hash = hash.HASH.substring(0, 1) + "..." + hash.HASH.substring(6, 190);
                 return hash;
               }},
-              {title: "Relayed", field:"RELAYED", width:180, formatter:function(cell, formatterParams){
+              {title: "Relayed", field:"RELAYED", widthGrow:2, formatter:function(cell, formatterParams){
                   var time = cell.getData();
                   time = new Date(parseInt(time.RELAYED, 10)).toISOString();
                   time = moment(time).fromNow();
@@ -494,11 +495,19 @@ function loadData(res){
             index:"HEIGHT",
             columns:[
 
-              {title: "Height", field: "HEIGHT", width: 100, cssClass:"height-column"},
+              {title: "Height", field: "HEIGHT", width:80, cssClass:"height-column"},
 
-              {title: "Hash", field: "HASH"},
-
-              {title: "Timestamp", field:"RELAYED", width:150}
+              {title: "Hash", field: "HASH", widthGrow:4, formatter:function(cell, formatterParams){
+                var hash = cell.getData();
+                hash = hash.HASH.substring(0, 1) + "..." + hash.HASH.substring(6, 190);
+                return hash;
+              }},
+              {title: "Relayed", field:"RELAYED", widthGrow:2, formatter:function(cell, formatterParams){
+                  var time = cell.getData();
+                  time = new Date(parseInt(time.RELAYED, 10)).toISOString();
+                  time = moment(time).fromNow();
+                  return time;
+              }},
             ],
             headerSort: false,
             pagination:"local",
@@ -531,15 +540,9 @@ function loadData(res){
 
         var hash = el.txpow.txpowid;
 
-        var relayed = el.txpow.header.timesecs;
-
-        var dt = relayed;
-
-        var timeFrom2 = new Date(dt*1000).toISOString();
-
-        var timeFrom = moment(timeFrom2).fromNow();
+        var relayed = el.txpow.header.timesecs*1000;
         
-        var result = {HEIGHT: height, HASH: hash, RELAYED: timeFrom}
+        var result = {HEIGHT: height, HASH: hash, RELAYED: relayed}
 
       if(lastHeight !== height){
 
@@ -566,7 +569,7 @@ function loadData(res){
     <ul id="slide-out" class="right minima-blue-txt">
       <li class="hide-on-small-only">
         <!-- <a href="charts.html">Charts</a> -->
-        <a href="#">Charts</a>
+        <!-- <a href="#">Charts</a> -->
 
       </li>
       <li><a 
@@ -621,9 +624,11 @@ function loadData(res){
           <div id="example-table"></div>
           <div id="results-table" style="display:none;"></div>  
         
+        
+      </div>
+      <div class="container center load-btn">
         <a class="btn waves-effect waves-light load-btn"> Load More </a>
       </div>
-
 
     </div>
   
@@ -671,8 +676,6 @@ function loadData(res){
     $('.load-btn').on('click', function(){
 
       var size = $('#example-table').css('max-height').replace(/[^-\d\.]/g, '');
-
-      console.log("Load Btn Clicked and the max-height of the table is :"+size );
 
       size = parseInt(size, 10) + 264;
 

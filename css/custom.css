@@ -79,13 +79,33 @@
 
   /* Tabulator */
   .load-btn {
+    margin-top: 15px;
+  }
+  .load-btn a {
     text-align: center;
-    width: 115px;
-    height: 35px;
   }
   .table-section {
-    padding-left: 5px;
-    padding-right: 5px;
+
+  }
+  @media only screen and (min-width: 1200px) {
+    .table-section {
+      margin-left: 150px;
+      margin-right: 150px;
+    }
+    .my-search-wrap {
+      margin-left: 150px;
+      margin-right: 150px;
+    }
+  }
+  @media only screen and (min-width: 1500px) {
+    .table-section {
+      margin-left: 250px;
+      margin-right: 250px;
+    }
+    .my-search-wrap {
+      margin-left: 150px;
+      margin-right: 150px;
+    }
   }
   .tabulator-tableHolder {
     background-color: #eee !important; 
@@ -124,9 +144,11 @@
     border: 0 !important;
   }
   .tabulator-row-even {
+    border-top: 1px #e2e2e2 solid !important;
     background-color: #eee !important;
   }
   .tabulator-row-odd {
+    border-top: 1px #e2e2e2 solid !important;
     background-color: #eee !important;
   }
   .tabulator-col-resize-handle {
@@ -253,4 +275,8 @@
   }
   footer .row {
     margin-bottom: 0;
+  }
+
+  #results-table .tabulator-footer {
+    display: none;
   }
