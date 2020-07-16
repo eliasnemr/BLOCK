@@ -78,7 +78,15 @@
 
 
   /* Tabulator */
-
+  .load-btn {
+    text-align: center;
+    width: 115px;
+    height: 35px;
+  }
+  .table-section {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
   .tabulator-tableHolder {
     background-color: #eee !important; 
     overflow:visible !important;
@@ -141,11 +149,11 @@
 
   @font-face {
     font-family: EXO;
-    src: url('/fonts/Exo/Exo2-RegularCondensed.otf');
+    src: url('Exo2-RegularCondensed.otf');
   }
   @font-face {
     font-family: EXO_Bold;
-    src: url('/fonts/Exo/Exo2-BoldCondensed.otf');
+    src: url('Exo2-BoldCondensed.otf');
   }
 
   body {
@@ -241,7 +249,8 @@
   }
   .pulse {
     padding-bottom: 40px;
+    
   }
-  
-
-  
+  footer .row {
+    margin-bottom: 0;
+  }

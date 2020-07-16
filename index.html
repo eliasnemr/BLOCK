@@ -66,18 +66,26 @@
               {column:"HEIGHT", dir:"desc"}, //sort by this first
 
             ],
-            maxHeight: 530,
+            maxHeight: 660,
             resizableColumns: false,
             layout:"fitColumns",
             headerSort: false,
             index:"HEIGHT",
             columns:[
 
-              {title: "Height", field: "HEIGHT", width: 100, sorter: "number", cssClass: "height-column"},
+              {title: "Height", field: "HEIGHT", width: 90, sorter: "number", cssClass: "height-column"},
 
-              {title: "Hash", field: "HASH"},
-
-              {title: "Relayed", field:"RELAYED", width:150}
+              {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
+                var hash = cell.getData();
+                hash = hash.HASH.substring(0, 1) + "..." + hash.HASH.substring(6, 80);
+                return hash;
+              }},
+              {title: "Relayed", field:"RELAYED", width:180, formatter:function(cell, formatterParams){
+                  var time = cell.getData();
+                  time = new Date(parseInt(time.RELAYED, 10)).toISOString();
+                  time = moment(time).fromNow();
+                  return time;
+              }},
 
             ],
             rowClick:function(e, row){
@@ -112,7 +120,7 @@
           .then(function(){
 
               //run code after table has been successfully updated
-              console.log("TABULATOR: Added new data to the Table");
+              //console.log("TABULATOR: Added new data to the Table");
 
           })
           .catch(function(error){
@@ -124,18 +132,7 @@
       });
     });
   }
-  /** Get min of */ 
-  function getMin(arr, prop) {
-    var min;
-    for (var i=0 ; i<arr.length ; i++) {
-
-        if (min == null || parseInt(arr[i][prop]) > parseInt(min[prop]))
-
-            min = arr[i];
-
-    }
-    return min;
-  }
+  
 /** Update Tabulator Table with new blocks */
   function updateTableData() {
     
@@ -147,7 +144,7 @@
           var temp = []; 
 
           $.each(res.response.rows, function(i, el){
-          
+              
               temp.push(el);        
        
           });
@@ -156,7 +153,7 @@
           .then(function(){
 
               //run code after table has been successfully updated
-              console.log("TABULATOR: Added new data to the Table");
+              // console.log("TABULATOR: Added new data to the Table");
 
           })
           .catch(function(error){
@@ -172,7 +169,7 @@
 /** Create SQL Table */
   function createSQL(){
     Minima.sql(INITSQL, function(resp){
-      console.log(resp);
+      //console.log(resp);
       if(!resp.status){
 
         alert("Something went wrong with SQL DB+\n\n"+resp.message);
@@ -180,7 +177,7 @@
       }
     });
   }
-  var hash = "";var height="";var relayed="";var count = 0;var parent = "";
+  var hash = "";var height="";var relayed="";var count = 0;var parent=""
   var POPULATEQUERY = "INSERT INTO blocks (height, hash, relayed) VALUES ";
 // Recursive function to fetch prev 127 blocks from Minima to SQL
   function add127BlocksToSQL() {
@@ -191,14 +188,19 @@
 
     height = Minima.status['lastblock'];
 
-    // do this to get timesecs
-    Minima.cmd("txpowinfo "+hash, function(res){
+      // do this to get timesecs
+      Minima.cmd("txpowinfo "+hash, function(res){
 
-      relayed = res.response.txpow.header.timesecs;
+        relayed = (res.response.txpow.header.timesecs)*1000;
 
-    });
+        // relayed = moment(relayed);
+        // relayed = relayed._d;
+        // relayed = moment(relayed._d, 'YYYY-MM-DDTHH:mm:ssZ').format();
+        // relayed = moment(relayed).fromNow();
 
-      addRecord(height, hash, relayed); // h2 sql
+        addRecord(height, hash, relayed); // h2 sql
+
+      });
 
     }
     // let's get the tip's parent to traverse through..
@@ -213,7 +215,7 @@
 
         height = res.response.txpow.header.block;
 
-        relayed = res.response.txpow.header.timesecs;
+        relayed = (res.response.txpow.header.timesecs)*1000;
 
         addRecord(height, hash, relayed); // h2 sql
 
@@ -238,19 +240,7 @@
 
       // check if block already exists
       if(resp.response.status == true && resp.response.count == 0){
-
-        // ensure that relayed time is changed..
-        return new Promise(function(resolve, reject){
-            // convert time to timeago
-            relayed = moment(relayed*1000, "x").format("DD MMM YYYY hh:mm:ss a"); //parse string
-            
-            relayed = moment(relayed).fromNow();
-
-            resolve(relayed);
-        });
-
-        
-            // add to sql 
+        // add 2 sql
         Minima.sql(POPULATEQUERY+"('"+height+"','"+hash+"','"+relayed+"')", function(resp){
 
           // something went wrong, stop
@@ -261,13 +251,13 @@
           // otherwise insert..
           } else {
 
-            console.log("H2 SQL: Pushed a new block to SQL Database.");
+            //console.log("H2 SQL: Pushed a new block to SQL Database.");
 
           }
         });
       } else {
 
-        console.log("H2 SQL: Block already exists in SQL Database!");
+        //console.log("H2 SQL: Block already exists in SQL Database!");
 
       }
     });
@@ -287,14 +277,16 @@
       // only way to get time in secs for now...
       Minima.cmd("txpowinfo "+tip, function(res){
 
-        relayed = res.response.txpow.header.timesecs;
+      relayed = (res.response.txpow.header.timesecs)*1000;
 
-      });
       // delete last row
       deleteMIN();
 
       // Add tip to SQL list  
       addRecord(height, tip, relayed);
+
+      });
+      
 
     }
       
@@ -305,7 +297,7 @@ var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FR
   function deleteMIN() {
     Minima.sql(DELETELASTQUERY, function(res){  
       if(res.status == true){
-        console.log("H2 SQL : Deleted min record");
+
         return;
       }
     });
@@ -506,7 +498,7 @@ function loadData(res){
 
               {title: "Hash", field: "HASH"},
 
-              {title: "Relayed", field:"RELAYED", width:150}
+              {title: "Timestamp", field:"RELAYED", width:150}
             ],
             headerSort: false,
             pagination:"local",
@@ -559,6 +551,7 @@ function loadData(res){
     
     }
 
+
     });
 </script>
 
@@ -571,8 +564,10 @@ function loadData(res){
 
 
     <ul id="slide-out" class="right minima-blue-txt">
-      <li>
-        <a href="charts.html">Charts</a>
+      <li class="hide-on-small-only">
+        <!-- <a href="charts.html">Charts</a> -->
+        <a href="#">Charts</a>
+
       </li>
       <li><a 
       class="dark-toggle" 
@@ -619,16 +614,16 @@ function loadData(res){
       </div>
     </div>
 
-    <div class="section" id="index-banner">
+    <div class="section table-section" id="index-banner">
       <div class="container center">
-        <div class="row">
           
           <!-- TABULATOR - BLOCKS table -->
           <div id="example-table"></div>
           <div id="results-table" style="display:none;"></div>  
         
-        </div>
+        <a class="btn waves-effect waves-light load-btn"> Load More </a>
       </div>
+
 
     </div>
   
@@ -655,14 +650,8 @@ function loadData(res){
             <li><a class="grey-text" href="https://medium.com/minima-global" target="_blank">Medium</a></li>
             <li><a class="grey-text" href="https://github.com/spartacusrex99/Minima" target="_blank">Github</a></li>
             <li><a class="grey-text" href="https://minima.global/" target="_blank">Official Website</a></li>
-
           </ul>
         </div>
-      </div>
-    </div>
-    <div class="footer-copyright minima-grey-bg">
-      <div class="container">
-      <a id="elias" href="https://github.com/eliasnemr" target="_blank"><i style="color: white;"class="material-icons">code</i></a>
       </div>
     </div>
   </footer>
@@ -677,6 +666,22 @@ function loadData(res){
 
   <script>
   $(document).ready(function() {
+
+    // load more btn
+    $('.load-btn').on('click', function(){
+
+      var size = $('#example-table').css('max-height').replace(/[^-\d\.]/g, '');
+
+      console.log("Load Btn Clicked and the max-height of the table is :"+size );
+
+      size = parseInt(size, 10) + 264;
+
+      document.getElementById("example-table").style.maxHeight = size+"px";
+
+      table.redraw(true);
+    
+      
+    });
 
     // SWAP ICON ON CLICK
     // Source: https://stackoverflow.com/a/34254979/751570
