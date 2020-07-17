@@ -280,3 +280,14 @@
   #results-table .tabulator-footer {
     display: none;
   }
+  .details {
+    display: none;
+  }
+  .script {
+    font-size: 14px;;
+    word-wrap: break-word;
+    white-space: pre-line;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    hyphens: manual;
+  }

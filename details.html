@@ -10,6 +10,7 @@
   <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <link href="css/custom.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <script src="js/jquery-3.5.1.min.js"></script>
+  <script src="js/Minima/functions/functions.js"></script>
 </head>
 
 <body>
@@ -39,137 +40,22 @@
         $(document).on("click", ".pulse", function(){
           $('.tip').toggle("slide");
           $('.tip2').toggle("slide");
-        });     
-
-    });
-
-    function darkmode() {
-      // check for mode
-      if(localStorage.getItem('mode') == 'dark'){
-
-                $('body').addClass("dark");
-
-              } else if (localStorage.getItem('mode') == 'light') {
-
-                $('body').removeClass("dark");
-
-              }
-    }
-    function copyHash() {
-      $('.copy').on("click", function(){
-
-          var hash = window.localStorage.getItem("relativeHash");
-
-          const el = document.createElement("textarea");
-
-          el.setAttribute('readonly', '');
-
-          el.style.position = 'absolute';
-
-          el.style.left = '-9999px';
-
-          el.value = hash;
-
-          document.body.appendChild(el);
-
-          el.select();
-
-          document.execCommand('copy');
-          
-          alert("Copied Hash.");
-
-        });
-    }
-    function setDetails() {
-      var hash = localStorage.getItem("relativeHash");
-
-        $("#hash").html(hash);
-
-        var width = $('#hash').width();
-        console.log(width);
+        });   
         
-        Minima.cmd("txpowinfo "+hash, function(res){
+        $(document).on("click", ".details-btn", function() {
+          // console.log('details-btn pressed');
+          $('.details').toggle("slide");
 
-        console.log(res);
-
-        $("#nav-blocks").html("Block "+res.response.txpow.header.block);
-
-        $("#height").html(res.response.txpow.header.block);
-
-        if(res.response.txpow.isblock == true){
-
-            $("#isblock").html("Yes");
-
-        } else {
-
-            $("#isblock").html("No");
-
-        }
-
-        $("#nonce").html(res.response.txpow.header.nonce);
-
-        $("#cascadelevels").html(res.response.txpow.header.cascadelevels);
-
-        $("#superparents-amnt").html(res.response.txpow.superblock);
-
-        $("#timestamp").html(res.response.txpow.header.date.substring(4, 30));
-
-        $("#header").html("Block "+ res.response.txpow.header.block);
-
-
-        if(res.response.txpow.body.txn.inputs.length > 0 && res.response.txpow.body.txn.inputs[0].coinid == "0xFEED50FEED50FEED50FEED50" ){
-
-          var tmpl = $.templates('#txn-template');
-
-          var inputs = []; var outputs = []; var input_index; var output_index; var txn_index;
-
-          $.each(res.response.txpow.body.txn.inputs, function(i, el){
-            inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount});
-          });
-
-          $.each(res.response.txpow.body.txn.outputs, function(i, el){
-            outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount});
-          });
-          
-          // create txn
-          var txn = { txn_index: 0, inputs: inputs, outputs: outputs };
-
-          // render
-          var html = tmpl.render(txn);
-
-          $('.collection').after(html);
-
-        } else if(res.response.txpow.body.txn.inputs.length > 0){
-
-          var tmpl = $.templates('#txn-template');
-
-          var inputs = []; var outputs = []; var input_index; var output_index; var txn_index;
-
-          $.each(res.response.txpow.body.txn.inputs, function(i, el){
-            inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount});
-          });
-
-          $.each(res.response.txpow.body.txn.outputs, function(i, el){
-            outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount});
-          });
-          
-          // create txn
-          var txn = { txn_index: 0, inputs: inputs, outputs: outputs };
-          // render
-          var html = tmpl.render(txn);
-
-          $('.collection').after(html);
-
-          
-        } else {
-
-          $('.collection').after("<div class='row center'><a class='btn-small pulse tooltipped' data-html='true' data-position='right' data-tooltip='TEST'>Pulse TXN<i class='material-icons tip'>show_chart</i><i class='material-icons tip2' style='display:none;'>multiline_chart</i></a><p class='tip' style='display:none;'>This transaction is a Pulse, so it has no inputs and outputs.</p></div>");
-        
+          if ($('.details-btn').find('i').text() == 'add'){
+            $(this).find('i').text('close');
+          } else {
+            $(this).find('i').text('add');
           }
 
-
         });
-    }
+        
+
+    });
 
 </script>
 <script id="txn-template" type="text/x-jsrender">
@@ -180,9 +66,9 @@
       <p>TXN #{{:txn_index}}</p>
     </div>
 
-    <div class="col s3">
+    <div class="col s3" >
       <p>
-        <a class="waves-effect waves-light btn-flat">Details <i class=" material-icons right " style="font-size: 15px;">call_received</i></a>
+        <a class="waves-effect waves-light btn-flat details-btn">Details <i class=" material-icons right details-icon " style="font-size: 15px;">add</i></a>
       </p>
     </div>
 
@@ -191,7 +77,7 @@
       <div class="row">
 
       {{for inputs}}
-        <div class="col s4 input">
+        <div class="col s5 input">
           <div class="row">
             <div class="col s1">
               <p id="index">#{{:input_index}}</p>
@@ -203,14 +89,35 @@
               <p>{{:inAmount}}</p>
             </div>
           </div>
-          <!-- <div class="row">
+          <div class="row details">
             <ul class="collection" style="line-style: none;">
               <li class="collection-item">
-              <div>Height
-                <a href="#!" class="secondary-content"></a>
+              <div>Token ID
+                <a href="#!" class="secondary-content">{{:inTokenID}}</a>
               </div>
+              </li>
+              <li class="collection-item">
+                <div>Floating
+                  <a href="#!" class="secondary-content">{{:inFloating}}</a>
+                </div>
+                </li>
+              <li class="collection-item">
+                <div>Remainder
+                  <a href="#!" class="secondary-content">{{:inRemainder}}</a>
+                </div>
+              </li>
+              
+            {{if scripts}}
+              {{for scripts}}
+              <li class="collection-item script">
+                <div>Script #{{:script_index}}
+                  <a href="#!" class="secondary-content script">{{:script}}</a>
+                </div>
+              </li>
+              {{/for}}
+            {{/if}}
             </ul>
-          </div> -->
+          </div> 
         </div>
       {{/for}}
 
@@ -219,7 +126,7 @@
       </div>
 
       
-      <div class="col s6 output">
+      <div class="col s5 output">
         {{for outputs}}
         <div class="row">
           <div class="col s1">
@@ -232,6 +139,27 @@
             <p>{{:outAmount}}</p>
           </div>
         </div>
+
+        <div class="row details">
+          <ul class="collection" style="line-style: none;">
+            <li class="collection-item">
+            <div>Token ID
+              <a href="#!" class="secondary-content">{{:outTokenID}}</a>
+            </div>
+            </li>
+            <li class="collection-item">
+              <div>Floating
+                <a href="#!" class="secondary-content">{{:outFloating}}</a>
+              </div>
+              </li>
+              <li class="collection-item">
+                <div>Remainder
+                  <a href="#!" class="secondary-content">{{:outRemainder}}</a>
+                </div>
+                </li>
+          </ul>
+        </div> 
+
         <div class="divider"></div>
       {{/for}}
       </div>
@@ -243,24 +171,7 @@
 
 </script>
 
-<script id="txn-inputs" type="text/x-jsrender">
-{{for inputs}}
-      
-      <div class="col s4 input">
-        <div class="row">
-          <div class="col s10">
-            <p id="index tooltipped" data-html="true" data-position="top" data-tooltip="Input Index">#{{:input_index}}</p>
-            <p class="address">{{:inAddress}}</p>
-          </div>
-          <div class="col s2 amnt">
-            <p>{{:inAmount}}</p>
-          </div>
-          <!-- Details -->
-        </div>
-      </div>
-    
-    {{/for}}  
-</script>
+
 
   <div class="navbar-fixed">
   <nav class="minima-black-bg lighten" role="navigation">
@@ -295,7 +206,7 @@
               <a href="#!" id="height" class="secondary-content"></a>
             </div>
           </li>
-          <li class="collection-item tooltipped " data-html="true" data-position="top" data-tooltip="Unique identifier used to identify this block">
+          <li class="collection-item tooltipped " data-html="true" data-position="top" data-tooltip="Unique identifier of block">
             <div id="hash-wrapper">Hash
               <a href="#!" id="hash" class="secondary-content"></a>
             </div>
@@ -313,13 +224,7 @@
             </a>
             </div>
           </li>
-          <!-- <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Number of references to Superblocks of current block">
-            <div>Cascade Levels
-              <a href="#!" id="cascadelevels" class="secondary-content">
-              </a>
-          </div>
-           </li> -->
-          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Number of Superparents of this block">
+          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Superblock level of current block">
             <div>Superblock Level
               <a href="#!" id="superparents-amnt" class="secondary-content">
           </a>
