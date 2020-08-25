@@ -22,14 +22,14 @@ var MINIMA_IS_MINIDAPP    = true;
  * This replaced AUTOMATICALLY by the Minima App..
  */
 
-var MINIMA_MINIDAPP_HOST = "192.168.100.162:8999";
+var MINIMA_MINIDAPP_HOST = "192.168.10.2:8999";
 
 //var MINIMA_MINIDAPP_HOST = "127.0.0.1:8999";
 
 /**
  * The Web Socket Host
  */
-var MINIMA_WEBSOCKET_HOST = "ws://192.168.100.162:20999";
+var MINIMA_WEBSOCKET_HOST = "ws://192.168.10.2:20999";
 
 /**
  * MiFi Proxy Server for initial connect
