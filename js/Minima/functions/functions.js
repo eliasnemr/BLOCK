@@ -583,6 +583,13 @@ function darkmode() {
 
       $("#header").html("Block "+ res.response.txpow.header.block);
 
+      $("#outputs").html(res.response.txpow.body.txn.outputs.length);
+
+      $("#inputs").html(res.response.txpow.body.txn.inputs.length);
+
+
+
+
       
       if(res.response.txpow.body.txn.inputs.length > 0 && res.response.txpow.body.txn.inputs[0].coinid == "0xFEED50FEED50FEED50FEED50" ){
 
