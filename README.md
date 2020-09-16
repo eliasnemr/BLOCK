@@ -16,4 +16,3 @@ This is a pre-**MiniDAPP** built using Html, **Materialize** Bootstrap SCSS, Van
 ###### Or you can always ask me on here.
 ###### Elias 
 ###### :love_letter:
-

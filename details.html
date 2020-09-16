@@ -11,6 +11,8 @@
   <link href="css/custom.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <script src="js/jquery-3.5.1.min.js"></script>
   <script src="js/Minima/functions/functions.js"></script>
+
+
 </head>
 
 <body>
@@ -53,9 +55,24 @@
           }
 
         });
-        
+});
 
-    });
+function txnClicked(index) {
+  $(document).ready(function() {
+
+    var block = $('#nav-blocks').text();
+    localStorage.setItem("block", block);
+    localStorage.setItem("txn-index", index);
+
+    window.location.href = './txn-details.html?TXN='+index;
+
+    return false;
+
+  });
+
+}
+  
+
 
 </script>
 <script id="txn-template" type="text/x-jsrender">
@@ -171,8 +188,25 @@
 
 </script>
 
+<script id="txnlist-template" type="text/x-jsrender">
+  <div class="row">
+    <ul class="collection with-header">
+      <li class="collection-header"><h4>Transaction List</h4></li>
+      
+      {{for txnlist}}
+       <li onclick="txnClicked( {{:index}} )" class="collection-item">
+         <div id="txn-wrapper">
+          <div>TXN #{{:index}}</div>
+          <a href="#" class="secondary-content">{{:hash}}</a>
+         </div>
+      </li>
 
+      {{/for}}
 
+    </ul>
+  </div>
+  
+</script>
   <div class="navbar-fixed">
   <nav class="minima-black-bg lighten" role="navigation">
   <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">
@@ -193,7 +227,7 @@
   </nav>
   </div>
     <!-- Details BODY INFO -->
-    <div class="container">
+    <div class="container" id="content">
         <div class="section">
             <div class="row">    
             <i class='material-icons left info tooltipped' data-html='true' data-position='top' data-tooltip='Block number referencing at which height this block is currently in the Minima blockchain'>info</i>
@@ -207,7 +241,7 @@
             </div>
           </li>
           <li class="collection-item tooltipped " data-html="true" data-position="top" data-tooltip="Unique identifier of block">
-            <div id="hash-wrapper">Hash
+            <div id="hash-wrapper">TxPoW
               <a href="#!" id="hash" class="secondary-content"></a>
             </div>
             <div class="copy-icon">
@@ -242,6 +276,12 @@
             </a>
           </div>
         </li>
+        <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Number of transactions in this block">
+          <div>No. of Transactions 
+            <a href="#!" id="txns" class="secondary-content">
+            </a>
+          </div>
+        </li>
           <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Timestamp of when this block was mined">
             <div>Timestamp
               <a href="#!" id="timestamp" class="secondary-content">
@@ -254,9 +294,6 @@
             </div>
         </div>
     </div>
-
-    
-
 <!--  Scripts-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.7/jsrender.min.js"></script>
 <script src="js/bin/materialize.js"></script>

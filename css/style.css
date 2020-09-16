@@ -8165,6 +8165,9 @@ body.dark .tabulator .tabulator-row.tabulator-selectable:hover {
   background-color: #343a40 !important;
   cursor: pointer;
 }
+body.dark #txn-wrapper:hover {
+  background-color: #343a40 !important;
+}
 body.dark input {
   color: #E2E2E2;
 }
@@ -8223,6 +8226,13 @@ body.dark .address {
   color: #929396 !important;
 }
 body.dark .info {
+  color: #34A69A !important;
+}
+body.dark #txn-header {
+  color: rgb(52,166,154);
+}
+body.dark .toast {
+  background-color: #000000 !important;
   color: #34A69A !important;
 }
 

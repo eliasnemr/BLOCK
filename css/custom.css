@@ -218,12 +218,16 @@
     word-wrap: break-word;
     word-break: break-all;
     hyphens: auto;
-    white-space: pre-wrap;
+    white-space: pre-line;
   }
 
   /* Details.html */
   .secondary-content {
     color: #929396 !important;
+    word-break: break-all;
+    white-space: pre-line;
+    overflow-wrap: break-word;
+
   }
   /* Transactions */
 
@@ -290,4 +294,30 @@
     word-break: break-all;
     overflow-wrap: break-word;
     hyphens: manual;
+  }
+  #txn-wrapper {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-all;
+    hyphens: auto;
+    white-space: pre-line;
+  }
+  #txn-wrapper:hover {
+    cursor: pointer;
+    background-color: #f2f2f2 !important;
+  }
+  #msg {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-all;
+    hyphens: auto;
+    white-space: pre-line;
+  }
+
+  #txn-header {
+    font-size: 1.5rem;
+  }
+  .toast {
+    background-color: #f2f2f2 !important;
+    color: #929396 !important;
   }

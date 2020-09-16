@@ -1,12 +1,10 @@
-// Misc Functions to help with BLOCK 
-function getBlockNumber() {
-    document.getElementById('blocknumber').innerHTML = "<b>"+ Minima.block+"</b>";
-  } 
+
   // INIT Tabulator blocks-table.. 
   function initTable() {
     $(document).ready(function(){
-      Minima.sql("SELECT DISTINCT height, hash, relayed from blocks ORDER BY height desc", function(res){
-
+      Minima.sql("SELECT * from blocks", function(res){
+        
+        console.log(res);
         // Create a tabulator instance, and refer it to the div canvas
           table = new Tabulator("#example-table", {
             initialSort:[
@@ -22,16 +20,20 @@ function getBlockNumber() {
             index:"HEIGHT",
             columns:[
 
-              {title: "Height", field: "HEIGHT", sorter: "number", width: 95, cssClass: "height-column"},
+              {title:"txpow", field:"txpow", visible: false},
 
-               {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
+              {title: "Height", field: "HEIGHT", sorter: "number", width: 65, widthShrink:2, cssClass: "height-column"},
+
+              {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
                 var hash = cell.getData();
-                hash = hash.HASH.substring(0, 1) + "..." + hash.HASH.substring(6, 190);
+                hash = hash.HASH.substring(0, 15) + "..." + hash.HASH.substring(hash.HASH.length-80, hash.HASH.length);
                 return hash;
               }},
+              {title: "TXNS", field:"TXNS", width:50, widthShrink:3},
+
               {title: "Relayed", field:"RELAYED", width: 110, formatter:function(cell, formatterParams){
                   var time = cell.getData();
-                  time = new Date(parseInt(time.RELAYED, 10)).toISOString();
+                  time = new Date(parseInt(time.RELAYED*1000, 10)).toISOString();
                   time = moment(time).fromNow();
                   return time;
               }},
@@ -39,16 +41,14 @@ function getBlockNumber() {
             ],
             rowClick:function(e, row){
 
-              var clickedrow = row._row.data;
-          
-              //row - row component
-              // console.log("USEREVENT: Clicked Row."+ clickedrow.HEIGHT);
-            
-              var relativeHash = clickedrow.HASH;
-              // add to localStorage to pass to details.html..
-              localStorage.setItem("relativeHash", clickedrow.HASH);
+              var clicked_row = row._row.data;
 
-              window.location.href = './details.html?'+relativeHash;
+              console.log(row._row.data);
+            
+              // add to localStorage to pass to details.html..
+              localStorage.setItem("txpow", clicked_row.TXPOW);
+
+              window.location.href = './details.html?'+clicked_row.HEIGHT;
 
               return false;
 
@@ -61,8 +61,6 @@ function getBlockNumber() {
           $.each(res.response.rows, function(i, el){
             
             temp.push(el);
-            
-            console.log("Drew")
 
           });
           
@@ -85,13 +83,23 @@ function getBlockNumber() {
       });
     });
   }
+
+  function filterData(query) {
+    $("#searchBtn").on("click", function(){
+
+      table.setFilter(
+        {field:"HEIGHT", type:"=", value:query},
+      )
+
+    });
+  }
   
 /** Update Tabulator Table with new blocks */
   function updateTableData() {
     
     $(document).ready(function(){
 
-        Minima.sql("SELECT DISTINCT height, hash, relayed from blocks ORDER BY height desc", function(res){
+        Minima.sql("SELECT * FROM blocks ORDER BY HEIGHT DESC", function(res){
 
           // Loop through the json rows arr and add..
           var temp = []; 
@@ -106,7 +114,7 @@ function getBlockNumber() {
           .then(function(){
 
               //run code after table has been successfully updated
-              // console.log("TABULATOR: Added new data to the Table");
+              console.log("TABULATOR: Added new data to the Table");
 
           })
           .catch(function(error){
@@ -114,145 +122,6 @@ function getBlockNumber() {
               console.log(error);
           });
         });
-    });
-  }
-  // SQL to create the dB
-  var INITSQL = "CREATE Table IF NOT EXISTS blocks ( height VARCHAR(160) NOT NULL, hash VARCHAR(160) NOT NULL, relayed VARCHAR(160) NOT NULL);"+
-                "SELECT DISTINCT height, hash, relayed FROM blocks";
-/** Create SQL Table */
-  function createSQL(){
-    Minima.sql(INITSQL, function(resp){
-      //console.log(resp);
-      if(!resp.status){
-
-        alert("Something went wrong with SQL DB+\n\n"+resp.message);
-
-      }
-    });
-  }
-  var hash = "";var height="";var relayed="";var count = 0;var parent=""
-  var POPULATEQUERY = "INSERT INTO blocks (height, hash, relayed) VALUES ";
-// Recursive function to fetch prev 127 blocks from Minima to SQL
-  function add127BlocksToSQL() {
-
-    if(count == 0){
-
-    hash = Minima.status['tip'];
-
-    height = Minima.status['lastblock'];
-
-      // do this to get timesecs
-      Minima.cmd("txpowinfo "+hash, function(res){
-
-        relayed = (res.response.txpow.header.timesecs)*1000;
-
-        // relayed = moment(relayed);
-        // relayed = relayed._d;
-        // relayed = moment(relayed._d, 'YYYY-MM-DDTHH:mm:ssZ').format();
-        // relayed = moment(relayed).fromNow();
-
-        addRecord(height, hash, relayed); // h2 sql
-
-      });
-
-    }
-    // let's get the tip's parent to traverse through..
-    Minima.cmd("txpowinfo "+hash, function(res){
-
-      // get block's parent block
-      parent = res.response.txpow.header.superparents[0].parent;
-
-      Minima.cmd("txpowinfo "+parent, function(res) {
-
-        hash = res.response.txpow.txpowid;
-
-        height = res.response.txpow.header.block;
-
-        relayed = (res.response.txpow.header.timesecs)*1000;
-
-        addRecord(height, hash, relayed); // h2 sql
-
-        // callback
-        if(count < 128){
-
-          count++;
-
-          add127BlocksToSQL();
-        } else {
-          return 0;
-        }
-      });
-    });
-  }
-/** ADD TO SQL */ 
-  var CHECKQUERY = "SELECT DISTINCT height, hash, relayed FROM blocks WHERE hash = '";
-  function addRecord(height, hash, relayed) {
-
-    // check if hash already exists, if not populate..
-    Minima.sql(CHECKQUERY+hash+"'", function(resp){
-
-      // check if block already exists
-      if(resp.response.status == true && resp.response.count == 0){
-        // add 2 sql
-        Minima.sql(POPULATEQUERY+"('"+height+"','"+hash+"','"+relayed+"')", function(resp){
-
-          // something went wrong, stop
-          if(!resp.status){
-
-            alert("H2 SQL: Something went wrong adding the new record+\n\n"+resp.message);
-
-          // otherwise insert..
-          } else {
-
-            //console.log("H2 SQL: Pushed a new block to SQL Database.");
-
-          }
-        });
-      } else {
-
-        //console.log("H2 SQL: Block already exists in SQL Database!");
-
-      }
-    });
-  }
-/** Get the tip added to SQL */
-  function getNewBlockToSQL() {  
-
-    // Get tip of chain 
-    tip = Minima.status['tip'];
-
-    // Check if this block exists 
-    Minima.sql(CHECKQUERY+tip+"'", function(resp){
-    if(resp.response.status == true && resp.response.count == 0){
-
-      height = Minima.status['lastblock'];
-
-      // only way to get time in secs for now...
-      Minima.cmd("txpowinfo "+tip, function(res){
-
-      relayed = (res.response.txpow.header.timesecs)*1000;
-
-      // delete last row
-      deleteMIN();
-
-      // Add tip to SQL list  
-      addRecord(height, tip, relayed);
-
-      });
-      
-
-    }
-      
-    });
-  }
-/** Delete last row w/ MIN(height) in sql */
-var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FROM blocks))";
-  function deleteMIN() {
-    Minima.sql(DELETELASTQUERY, function(res){  
-      if(res.status == true){
-
-        return;
-      }
     });
   }
 
@@ -290,6 +159,11 @@ var DELETELASTQUERY = "DELETE FROM blocks WHERE (height = (SELECT MIN(height) FR
           $('#results-table').fadeOut(100);
 
   }
+
+
+  table.setFilter(
+    "HEIGHT", "=", addr
+  );
 
   Minima.cmd("txpowsearch input:"+addr, function(res){
     if(res.status == true){
@@ -408,9 +282,9 @@ $('#search-input').keypress(function(event){
         } 
       });
   }
-  //Stop the event from propogation to other handlers
-  //If this line will be removed, then keypress event handler attached 
-  //at document level will also be triggered
+  // Stop the event from propogation to other handlers
+  // If this line will be removed, then keypress event handler attached 
+  // at document level will also be triggered
   event.stopPropagation();
 });
 
@@ -451,7 +325,7 @@ function loadData(res){
 
               {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
                 var hash = cell.getData();
-                hash = hash.HASH.substring(0, 1) + "..." + hash.HASH.substring(6, 190);
+                hash = hash.HASH.substring(0, 15) + "..." + hash.HASH.substring(hash.HASH.length-60, hash.HASH.length);
                 return hash;
               }},
               {title: "Relayed", field:"RELAYED", width: 110, formatter:function(cell, formatterParams){
@@ -482,9 +356,7 @@ function loadData(res){
 
             },
           });
-        
-     
-
+      
       var lastHeight = "";    
       $.each(res.response.txpowlist.reverse(), function(i, el){
         
@@ -544,26 +416,27 @@ function darkmode() {
 
         document.execCommand('copy');
         
-        alert("Copied Hash.");
+        M.toast({html:"Copied Hash"});
 
       });
   }
   function setDetails() {
-    var hash = localStorage.getItem("relativeHash");
 
-      $("#hash").html(hash);
+    var txpow = localStorage.getItem("txpow");
 
-      var width = $('#hash').width();
-      
-      Minima.cmd("txpowinfo "+hash, function(res){
+    txpow = JSON.parse(txpow);
+
+    console.log(txpow);
+
+      $("#hash").html(txpow.txpowid);
 
       // console.log(res);
 
-      $("#nav-blocks").html("Block "+res.response.txpow.header.block);
+      $("#nav-blocks").html("Block "+txpow.header.block);
 
-      $("#height").html(res.response.txpow.header.block);
+      $("#height").html(txpow.header.block);
 
-      if(res.response.txpow.isblock == true){
+      if(txpow.isblock == true){
 
           $("#isblock").html("Yes");
 
@@ -573,40 +446,38 @@ function darkmode() {
 
       }
 
-      $("#nonce").html(res.response.txpow.header.nonce);
+      $("#nonce").html(txpow.header.nonce);
 
-      $("#cascadelevels").html(res.response.txpow.header.cascadelevels);
+      $("#superparents-amnt").html(txpow.superblock);
 
-      $("#superparents-amnt").html(res.response.txpow.superblock);
+      var time = moment(txpow.header.timesecs*1000).format("DD MMMM YYYY HH:MM a");
 
-      $("#timestamp").html(res.response.txpow.header.date.substring(4, 30));
+      $("#timestamp").html(time);
 
-      $("#header").html("Block "+ res.response.txpow.header.block);
+      $("#header").html("Block "+ txpow.header.block);
 
-      $("#outputs").html(res.response.txpow.body.txn.outputs.length);
+      $("#outputs").html(txpow.body.txn.outputs.length);
 
-      $("#inputs").html(res.response.txpow.body.txn.inputs.length);
+      $("#inputs").html(txpow.body.txn.inputs.length);
 
-
-
-
+      $("#txns").html(txpow.body.txnlist.length);
       
-      if(res.response.txpow.body.txn.inputs.length > 0 && res.response.txpow.body.txn.inputs[0].coinid == "0xFEED50FEED50FEED50FEED50" ){
+      if(txpow.body.txn.inputs.length > 0 && txpow.body.txn.inputs[0].coinid == "0xFEED50FEED50FEED50FEED50" ){
 
         var tmpl = $.templates('#txn-template');
 
         var inputs = []; var outputs = []; var input_index; var output_index; var txn_index;
         var scripts = [];
         // get TXN input scripts
-        $.each(res.response.txpow.body.witness.scripts, function(i, el){
+        $.each(txpow.body.witness.scripts, function(i, el){
           scripts.push({script_index: i, script: el.script, data: el.proof.data, hashbits: el.proof.hashbits, proofchain: el.proof.proofchain, chainsha: el.proof.chainsha, finalhash: el.proof.finalhash });
         });
         // get TXN inputs
-        $.each(res.response.txpow.body.txn.inputs, function(i, el){
+        $.each(txpow.body.txn.inputs, function(i, el){
           inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount, inTokenID: el.tokenid, inFloating: el.floating, inRemainder: el.remainder, scripts: scripts});
         });
         // get TXN outputs
-        $.each(res.response.txpow.body.txn.outputs, function(i, el){
+        $.each(txpow.body.txn.outputs, function(i, el){
           outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount, outTokenID: el.tokenid, outFloating: el.floating, outRemainder: el.remainder});
         });
 
@@ -619,23 +490,27 @@ function darkmode() {
 
         $('.collection').after(html);
 
-      } else if(res.response.txpow.body.txn.inputs.length > 0){
+      } else if(txpow.body.txn.inputs.length > 0 && txpow.body.txnlist.length > 0){
 
         var tmpl = $.templates('#txn-template');
+        var tmpl_txnlist = $.templates('#txnlist-template');
 
-        var inputs = []; var outputs = []; var input_index; var output_index; var txn_index;
+        var inputs = []; var outputs = [];var txnlist = []; var input_index; var output_index; var txn_index;
         var scripts = [];
         // get TXN input scripts
-        $.each(res.response.txpow.body.witness.scripts, function(i, el){
+        $.each(txpow.body.witness.scripts, function(i, el){
           scripts.push({script_index: i, script: el.script, data: el.proof.data, hashbits: el.proof.hashbits, proofchain: el.proof.proofchain, chainsha: el.proof.chainsha, finalhash: el.proof.finalhash });
         });
         // get TXN inputs
-        $.each(res.response.txpow.body.txn.inputs, function(i, el){
+        $.each(txpow.body.txn.inputs, function(i, el){
           inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount, inTokenID: el.tokenid, inFloating: el.floating, inRemainder: el.remainder, scripts: scripts});
         });
         // get TXN outputs
-        $.each(res.response.txpow.body.txn.outputs, function(i, el){
+        $.each(txpow.body.txn.outputs, function(i, el){
           outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount, outTokenID: el.tokenid, outFloating: el.floating, outRemainder: el.remainder});
+        });
+        $.each(txpow.body.txnlist, function(i, el){
+          txnlist.push({index:i, hash: el});
         });
 
         
@@ -644,15 +519,92 @@ function darkmode() {
         // render
         var html = tmpl.render(txn);
 
+        // create txnlist 
+        var txnlist = { txnlist: txnlist};
+
+        var html_txnlist = tmpl_txnlist.render(txnlist);
+
         $('.collection').after(html);
+        $('.collection').after(html_txnlist);
 
         
+      } else if(!txpow.body.txn.inputs.length > 0 && txpow.body.txnlist.length > 0){
+        var txnlist = [];
+        var tmpl_txnlist = $.templates('#txnlist-template');
+
+        $.each(txpow.body.txnlist, function(i, el){
+          txnlist.push({index:i, hash: el});
+        });
+
+        localStorage.setItem("txnlist", JSON.stringify(txnlist));
+
+        // create txnlist 
+        var txnlist = { txnlist: txnlist };
+        // render inside the template
+        var html_txnlist = tmpl_txnlist.render(txnlist);
+        // add it to html
+        $('.collection').after(html_txnlist);
+      
       } else {
 
         $('.collection').after("<div class='row center'><a class='btn-small pulse tooltipped' data-html='true' data-position='right' data-tooltip='TEST'>Pulse TXN<i class='material-icons tip'>show_chart</i><i class='material-icons tip2' style='display:none;'>multiline_chart</i></a><p class='tip' style='display:none;'>This transaction is a Pulse, so it has no inputs and outputs.</p></div>");
       
         }
 
+  }
 
-      });
+  // txn-details functions 
+
+  function setTXNDetails(index, block) {
+    $('#nav-blocks').html(block);
+    $('#nav-txn').html("TXN #"+ index); 
+    $('#txn-header').html("TXN #"+index);
+
+    var txnlist = localStorage.getItem('txnlist');
+    var txnlist = JSON.parse(txnlist);
+
+    Minima.cmd('txpowinfo '+ txnlist[index].hash, function(res){
+      
+      $('#hash').html(res.response.txpow.txpowid);
+      //moment.js format time
+      var time = moment(res.response.txpow.header.timesecs*1000).format("DD MMMM YYYY HH:MM a");
+      $('#received').html(time);
+      $('#nonce').html(res.response.txpow.header.nonce);
+      $('#size').html(res.response.txpow.size);
+      $('#block').html(res.response.inblock);
+      var state = res.response.txpow.body.txn.state;
+      if(state.length > 0 && state[0].data == '01000100') {
+        $('#msg').css("display", "block");
+        $('#message').html(state[1].data);
+      }
+
+      var inputs = []; var outputs = [];var scripts = [];
+      if(res.response.txpow.body.txn.inputs.length > 0) {
+
+        $.each(res.response.txpow.body.witness.scripts, function(i, el){
+          scripts.push({script_index: i, script: el.script, data: el.proof.data, hashbits: el.proof.hashbits, proofchain: el.proof.proofchain, chainsha: el.proof.chainsha, finalhash: el.proof.finalhash });
+        });
+        // get TXN inputs
+        $.each(res.response.txpow.body.txn.inputs, function(i, el){
+          inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount, inTokenID: el.tokenid, inFloating: el.floating, inRemainder: el.remainder, scripts: scripts});
+        });
+        // get TXN outputs
+        $.each(res.response.txpow.body.txn.outputs, function(i, el){
+          outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount, outTokenID: el.tokenid, outFloating: el.floating, outRemainder: el.remainder});
+        });
+
+        var tmpl = $.templates('#txn-template');
+
+        arr = { txn_index: 0, inputs: inputs, outputs: outputs };
+
+        var html = tmpl.render(arr)
+
+        $('#details').after(html);
+
+      }
+
+
+
+    });
+
   }
