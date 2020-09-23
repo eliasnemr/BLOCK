@@ -1,6 +1,6 @@
   // SQL to create the dB
-  var INITSQL = "CREATE Table IF NOT EXISTS blocks ( txpow LONGVARCHAR(MAX) NOT NULL, height int NOT NULL, hash VARCHAR(160) NOT NULL, relayed VARCHAR(160) NOT NULL, txns int NOT NULL);"+
-  "SELECT * FROM blocks";
+  var INITSQL = "CREATE Table IF NOT EXISTS txpowlist ( txpow LONGVARCHAR(MAX) NOT NULL, height int NOT NULL, hash VARCHAR(160) NOT NULL, isblock int NOT NULL, relayed VARCHAR(160) NOT NULL, txns int NOT NULL);"+
+  "SELECT * FROM txpowlist WHERE isblock = 1";
   /** Create SQL Table */
   function createSQL(){
     Minima.sql(INITSQL, function(resp){
@@ -14,13 +14,18 @@
   });
   }
 
-  var INSERT = "INSERT INTO blocks VALUES ('"
+  var INSERT = "INSERT INTO txpowlist VALUES ('"
   function addTxPoW(txpow) {
     
-    Minima.sql(INSERT+JSON.stringify(txpow)+"', '"+txpow.header.block+"', '"+txpow.txpowid+"', '"+txpow.header.timesecs+"', '"+txpow.body.txnlist.length+"')", function(res){
+    var isblock = 0;
+    if(txpow.isblock) {
+      isblock = 1;
+    }
+
+    Minima.sql(INSERT+JSON.stringify(txpow)+"', '"+txpow.header.block+"', '"+txpow.txpowid+"', '"+isblock+"', '"+txpow.header.timesecs+"', '"+txpow.body.txnlist.length+"')", function(res){
       if(res.status == true) 
       { 
-        // Minima.log("TxPoW Added To SQL Table.. ");
+        //Minima.log("TxPoW Added To SQL Table.. ");
       }
     });
     
@@ -29,16 +34,14 @@
 
 Minima.init(function(msg){
     if(msg.event == 'connected') {
-        
-        // init SQL DB for blocks
-        createSQL();
+      // init SQL DB for blocks
+      createSQL();
   
     } else if(msg.event == 'newtxpow') {
-      if(msg.info.txpow.isblock){
-        addTxPoW(msg.info.txpow);
-      }
+    
+      addTxPoW(msg.info.txpow);
         
-    }
+    } 
 });
  
 

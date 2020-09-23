@@ -1,5 +1,5 @@
 /** Mini Custom styling */
-.explorer {
+  .explorer {
     font-size: 16px !important;
     font-weight: 100 !important;
   }
@@ -44,6 +44,11 @@
     font-size: 44px;
     padding: 5px;
   }
+  #txn-header {
+    font-weight: 300;
+    font-size: 44px;
+    padding: 5px;
+  }
   .info {
     margin-top: 28px;
     color: #929396;
@@ -84,9 +89,7 @@
   .load-btn a {
     text-align: center;
   }
-  .table-section {
 
-  }
   @media only screen and (min-width: 1200px) {
     .table-section {
       margin-left: 150px;
@@ -213,12 +216,15 @@
   #hash {
     float: right;
   }
-  #hash-wrapper {
+  .hash-wrapper {
+    white-space: normal;
+    overflow: auto;
+  }
+  .of-text {
     overflow-wrap: break-word;
     word-wrap: break-word;
     word-break: break-all;
-    hyphens: auto;
-    white-space: pre-line;
+    hyphens: inherit;
   }
 
   /* Details.html */
@@ -300,7 +306,7 @@
     word-wrap: break-word;
     word-break: break-all;
     hyphens: auto;
-    white-space: pre-line;
+    white-space: pre-wrap;
   }
   #txn-wrapper:hover {
     cursor: pointer;
@@ -320,4 +326,15 @@
   .toast {
     background-color: #f2f2f2 !important;
     color: #929396 !important;
+  }
+
+  .padding {
+    padding: 20px;
+  }
+
+  .alert {
+    padding: 15px;
+    width: 100%;
+    background-color: rgb(238,110,115);
+    border: 1px solid;
   }

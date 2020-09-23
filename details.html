@@ -3,7 +3,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
-  <title>Block</title>
+  <title>BLOCK</title>
 
   <!-- CSS  -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
@@ -17,63 +17,85 @@
 
 <body>
 <script type="text/javascript">
+
+    window.addEventListener("load", function(res){
+
+      var txpow_ = Minima.form.getParams("txpow");
+
+      Minima.sql("SELECT * FROM txpowlist WHERE HASH = '"+txpow_+"'", function(txpow){
+        if(txpow.response.rows.length > 0) {
+          setDetails(txpow);
+        } else {
+          // alert div 
+          var no_blocks = document.createElement('div');
+          no_blocks.textContent = "Block "+txpow_+" not found!";
+          no_blocks.classList.add("row");
+          no_blocks.classList.add("center");
+          no_blocks.classList.add("alert");
+
+          var content = document.getElementById("content");
+          content.setAttribute("style", "display:none");
+
+          var nav = document.getElementById("direction");
+          nav.setAttribute("style", "display:none");
+
+          var content = document.querySelector('#content');
+          content.before(no_blocks);
+
+          setTimeout(function() {
+            window.history.back(); 
+          }, 3000);
+
+        }
+
+      });
+
+    });
     
     $(document).ready(function() {
         
       // check what mode is set.
-        darkmode();
+      darkmode();
 
-        Minima.init();
-        
-        // tool info display
-        $('.tooltipped').tooltip();
+      Minima.init(function(msg){});
+      
+      // tool info display
+      $('.tooltipped').tooltip();
 
-        // clipboard listener
-        copyHash();
+      // elias github
+      $("#elias").on("click", function(){
+        window.open('https://github.com/eliasnemr', '_blank'); 
+      });
 
-        // elias github
-        $("#elias").on("click", function(){
-          window.open('https://github.com/eliasnemr', '_blank'); 
-        });
+      $(document).on("click", ".pulse", function(){
+        $('.tip').toggle("slide");
+        $('.tip2').toggle("slide");
+      });   
+      
+      $(document).on("click", ".details-btn", function() {
+        // console.log('details-btn pressed');
+        $('.details').toggle("slide");
 
-        // fill details data
-        setDetails();
+        if ($('.details-btn').find('i').text() == 'add'){
+          $(this).find('i').text('close');
+        } else {
+          $(this).find('i').text('add');
+        }
 
-        $(document).on("click", ".pulse", function(){
-          $('.tip').toggle("slide");
-          $('.tip2').toggle("slide");
-        });   
-        
-        $(document).on("click", ".details-btn", function() {
-          // console.log('details-btn pressed');
-          $('.details').toggle("slide");
-
-          if ($('.details-btn').find('i').text() == 'add'){
-            $(this).find('i').text('close');
-          } else {
-            $(this).find('i').text('add');
-          }
-
-        });
+      });
 });
+function parentClicked() {
+  var parent = document.getElementById("parent").textContent;
+  var blk = $('#height').text();
 
-function txnClicked(index) {
-  $(document).ready(function() {
-
-    var block = $('#nav-blocks').text();
-    localStorage.setItem("block", block);
-    localStorage.setItem("txn-index", index);
-
-    window.location.href = './txn-details.html?TXN='+index;
-
-    return false;
-
-  });
+  window.location.search = location.search.replace(/txpow=[^&$]*/i, 'txpow='+parent);
+  return false;
 
 }
-  
-
-
+function txnClicked(hash) {
+  window.location.search = location.search.replace(/txpow=[^&$]*/i, 'txpow='+hash);
+  return false;
+}
 </script>
 <script id="txn-template" type="text/x-jsrender">
   <!-- TRANSACTIONS -->
@@ -194,10 +216,9 @@ function txnClicked(index) {
       <li class="collection-header"><h4>Transaction List</h4></li>
       
       {{for txnlist}}
-       <li onclick="txnClicked( {{:index}} )" class="collection-item">
-         <div id="txn-wrapper">
-          <div>TXN #{{:index}}</div>
-          <a href="#" class="secondary-content">{{:hash}}</a>
+       <li onclick='txnClicked( "{{:hash}}" )' class="collection-item hash-wrapper"><div>
+          <div class="of-text">TXN #{{:index}}</div>
+          <a href="#" id="txn-hash" class="secondary-content">{{:hash}}</a>
          </div>
       </li>
 
@@ -216,7 +237,7 @@ function txnClicked(index) {
   </div>
   </nav>
   </div>
-  <div class="navbar-fixed">
+  <div class="navbar-fixed" id="direction">
   <nav class="minima-grey-bg explorer-wrapper">
     <div class="nav-wrapper container">
       <div class="col s12">
@@ -234,71 +255,79 @@ function txnClicked(index) {
         <div id="header"></div>
         
 
-        <ul class="collection" style="line-style: none;">
-          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Height number of current block in the chain">
-            <div>Height
+        <ul class="collection">
+          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Height number of current block in the chain"><div>Height
               <a href="#!" id="height" class="secondary-content"></a>
             </div>
           </li>
-          <li class="collection-item tooltipped " data-html="true" data-position="top" data-tooltip="Unique identifier of block">
-            <div id="hash-wrapper">TxPoW
+          <li class="collection-item tooltipped hash-wrapper" data-html="true" data-position="top" data-tooltip="Unique identifier of block"><div class="of-text">TxPoW ID
               <a href="#!" id="hash" class="secondary-content"></a>
             </div>
-            <div class="copy-icon">
+            <div class="copy-icon" onclick="copy('hash')">
               <i class='material-icons copy tiny secondary-content copy-icon'>content_paste</i>
             </div>
           </li>
-          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Minima TxPoW protocol allows a transaction to randomly be a block">
-            <div>Is A Block?
+          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Timestamp of when this block was mined"><div>Timestamp
+              <a href="#!" id="timestamp" class="secondary-content"></a>
+            </div>
+          </li>
+          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Minima TxPoW protocol allows a transaction to randomly be a block"><div>Is A Block?
               <a href="#!" id="isblock" class="secondary-content"></a>
             </div>
           </li>
-          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Random number which satisfies proof of work">
-            <div>Nonce<a href="#!" id="nonce" class="secondary-content">
-            </a>
+          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Random number which satisfies proof of work"><div>Nonce
+            <a href="#!" id="nonce" class="secondary-content"></a>
             </div>
           </li>
-          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Superblock level of current block">
-            <div>Superblock Level
+          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Size of current TxPoW"><div>Size
+              <a href="#!" id="size" class="secondary-content">
+              </a>
+            </div>
+          </li>
+          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Superblock level of current block"><div>Superblock Level
               <a href="#!" id="superparents-amnt" class="secondary-content">
           </a>
         </div>
         </li>
-        <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Timestamp of when this block was mined">
-          <div>TXN Inputs
+        <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Transaction inputs"><div>TXN Inputs
             <a href="#!" id="inputs" class="secondary-content">
             </a>
           </div>
         </li>
-        <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Timestamp of when this block was mined">
-          <div>TXN Outputs
+        <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Transaction outputs"><div>TXN Outputs
             <a href="#!" id="outputs" class="secondary-content">
             </a>
           </div>
         </li>
-        <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Number of transactions in this block">
-          <div>No. of Transactions 
+        <li class="collection-item tooltipped hash-wrapper" data-html="true" data-position="top" data-tooltip="Parent of current block"><div class="of-text">Parent
+            <a href="#!" onclick="parentClicked()" id="parent" class="secondary-content"></a>
+          </div>
+          <div class="copy-icon" onclick="copy('parent')">
+            <i class='material-icons copy tiny secondary-content copy-icon'>content_paste</i>
+          </div>
+        </li>
+        <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Number of transactions in this block"><div>No. of Transactions 
             <a href="#!" id="txns" class="secondary-content">
             </a>
           </div>
         </li>
-          <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Timestamp of when this block was mined">
-            <div>Timestamp
-              <a href="#!" id="timestamp" class="secondary-content">
-              </a>
-            </div>
-          </li>
+        <li style="display: none;" id="msg" class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Public message of sender"><div>Message
+            <a href="#!" id="message" class="secondary-content">
+            </a>
+          </div>
+        </li>
+
         </ul>
         
-
             </div>
         </div>
     </div>
+
 <!--  Scripts-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.7/jsrender.min.js"></script>
 <script src="js/bin/materialize.js"></script>
-<script src="js/Minima/minima.js"> </script>
+<script src="js/Minima/minima.js"></script>
 <script src="js/moment.js"></script>
 
-    </body>
+  </body>
 </html>
