@@ -32,6 +32,13 @@
     
   }
 
+  function pruneData() {
+    Minima.sql("SELECT HEIGHT FROM txpowlist", function(res) {
+      console.log(res);
+      
+    });
+  }
+
 Minima.init(function(msg){
     if(msg.event == 'connected') {
       // init SQL DB for blocks
@@ -40,6 +47,8 @@ Minima.init(function(msg){
     } else if(msg.event == 'newtxpow') {
     
       addTxPoW(msg.info.txpow);
+      // prune data every 100 blocks
+      pruneData();
         
     } 
 });
