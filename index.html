@@ -113,40 +113,25 @@
     initTable();
 
     /** Update Tabulator Table with new blocks */
-    function updateTableData() {
-      
-      $(document).ready(function(){
-
-          Minima.sql("SELECT * FROM txpowlist WHERE ISBLOCK = 1 ORDER BY HEIGHT DESC LIMIT 500", function(res){
-
-            // Loop through the json rows arr and add..
-            var temp = []; 
-
-            $.each(res.response.rows, function(i, el){
-                
-                temp.push(el);        
-        
-            });
-            /** SET Data to the Tabulator REF as a promise */
-            table.replaceData(temp)
-            .then(function(){
-
-                //run code after table has been successfully updated
-                //console.log("TABULATOR: Added new data to the Table");
-
-            })
-            .catch(function(error){
-                //handle error loading data
-                console.log(error);
-            });
-          });
-      });
+    function updateTableData(msg) {       
+      var isblock = 0;
+      if(msg.txpow.isblock) {
+        isblock = 1;
+      } 
+      table.addRow(
+        {TXPOW: JSON.stringify(msg.txpow),
+           HEIGHT: msg.txpow.header.block,
+            HASH: msg.txpow.txpowid,
+             isblock: isblock,
+              TXNS: msg.txpow.body.txnlist.length,
+               RELAYED: msg.txpow.header.timesecs},
+                true);
     } 
 
     Minima.init(function(msg){
       if(msg.event == 'newtxpow') {
-
-        updateTableData();
+        
+        updateTableData(msg.info);
             
       } else if(msg.event == 'miningstart') {
   

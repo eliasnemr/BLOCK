@@ -2,14 +2,9 @@
   var table;
   function initTable() {
     $(document).ready(function(){
-      Minima.sql("SELECT * from txpowlist WHERE ISBLOCK = 1 ORDER BY HEIGHT DESC LIMIT 500", function(res){
+      Minima.sql("SELECT * from txpowlist WHERE ISBLOCK = 1 ORDER BY HEIGHT DESC LIMIT 100", function(res){
         // Create a tabulator instance, and refer it to the div canvas
         table = new Tabulator("#example-table", {
-          initialSort:[
-
-            {column:"HEIGHT", dir:"desc"}, //sort by this first
-
-          ],
           maxHeight: "660",
           layout: "fitColumns",
           resizableColumns: false,
@@ -20,7 +15,7 @@
 
             {title:"TxPoW", field:"TXPOW", visible: false},
 
-            {title: "Height", field: "HEIGHT", sorter: "number", width: 65, widthShrink:2, cssClass: "height-column"},
+            {title: "Height", field: "HEIGHT", sorter: "number", headerSortStartingDir:"desc", width: 65, widthShrink:2, cssClass: "height-column"},
 
             {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
               var hash = cell.getData();
@@ -124,45 +119,6 @@
         event.stopPropagation();
       });
     });
-  });
-}
-
-function search(query) {
-
-
-
-}
-
-
-/** Update Tabulator Table with new blocks */ 
-function updateTableData() {
-  
-  $(document).ready(function(){
-
-      Minima.sql("SELECT * FROM txpowlist WHERE ISBLOCK = 1 ORDER BY HEIGHT DESC LIMIT 500", function(res){
-
-        console.log(res);
-        // Loop through the json rows arr and add..
-        var temp = []; 
-
-        $.each(res.response.rows, function(i, el){
-            
-            temp.push(el);        
-      
-        });
-        /** SET Data to the Tabulator REF as a promise */
-        table.replaceData(temp)
-        .then(function(){
-
-            //run code after table has been successfully updated
-            //console.log("TABULATOR: Added new data to the Table");
-
-        })
-        .catch(function(error){
-            //handle error loading data
-            console.log(error);
-        });
-      });
   });
 }
 

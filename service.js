@@ -1,6 +1,5 @@
   // SQL to create the dB
-  var INITSQL = "CREATE Table IF NOT EXISTS txpowlist ( txpow LONGVARCHAR(MAX) NOT NULL, height int NOT NULL, hash VARCHAR(160) NOT NULL, isblock int NOT NULL, relayed VARCHAR(160) NOT NULL, txns int NOT NULL);"+
-  "SELECT * FROM txpowlist WHERE isblock = 1";
+  var INITSQL = "CREATE Table IF NOT EXISTS txpowlist ( txpow LONGVARCHAR(MAX) NOT NULL, height int NOT NULL, hash VARCHAR(160) NOT NULL, isblock int NOT NULL, relayed VARCHAR(160) NOT NULL, txns int NOT NULL)";
   /** Create SQL Table */
   function createSQL(){
     Minima.sql(INITSQL, function(resp){
