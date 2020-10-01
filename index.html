@@ -116,6 +116,11 @@
       if(msg.txpow.isblock) {
         isblock = 1;
       } 
+      
+      // wipe out mmrproofs and signatures for lighter txpows.. 
+      msg.txpow.body.witness.signatures = {};
+      msg.txpow.body.witness.mmrproofs = {};
+
       table.addRow(
         {
           TXPOW: JSON.stringify(msg.txpow),

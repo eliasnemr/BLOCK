@@ -20,6 +20,9 @@
     if(txpow.isblock) {
       isblock = 1;
     }
+    // wipe out mmrproofs and signatures for lighter txpows.. 
+    txpow.body.witness.signatures = {};
+    txpow.body.witness.mmrproofs = {};
 
     Minima.sql(INSERT+JSON.stringify(txpow)+"', '"+txpow.header.block+"', '"+txpow.txpowid+"', '"+isblock+"', '"+txpow.header.timesecs+"', '"+txpow.body.txnlist.length+"')", function(res){
       if(res.status == true) 
