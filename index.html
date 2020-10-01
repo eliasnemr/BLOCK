@@ -52,16 +52,16 @@
   </div>
 
   <!-- Body INFO -->
-  <div class="container" style="min-height: 100vh;"> 
+  <div class="container"> 
     <div class="section">
 
-      <div class="row center">
-        <div class="s12 m6">
+      <div class="row center" style="display:flex; flex-direction:row; justify-content: center; align-items: center;">
+        <div class="col s12 l12 m12 valign-wrapper">
 
-          <div class="search-wrapper my-search-wrap">
-            <input id="search-input" class="tooltipped center-align" placeholder="Search..." type="text" data-html="true" data-position="top" data-tooltip="Address, block number, coin id..">
-            <i id="searchBtn" class="material-icons search">search</i>
-          </div>
+          <input id="search-input" class="tooltipped center-align" placeholder="Search by address, coinid or tokenid" type="text" data-html="true" data-position="top" data-tooltip="Address, block number, coin id..">
+          
+          <i id="searchBtn" class="material-icons search">search</i>
+          
           
         </div>
       </div>
@@ -108,9 +108,7 @@
 
 <!-- Minima.js -->
 <script type="text/javascript">
-  window.addEventListener('load', function(evt){
-   
-    initTable();
+  $(document).ready(function(){
 
     /** Update Tabulator Table with new blocks */
     function updateTableData(msg) {       
@@ -119,17 +117,31 @@
         isblock = 1;
       } 
       table.addRow(
-        {TXPOW: JSON.stringify(msg.txpow),
+        {
+          TXPOW: JSON.stringify(msg.txpow),
            HEIGHT: msg.txpow.header.block,
             HASH: msg.txpow.txpowid,
              isblock: isblock,
               TXNS: msg.txpow.body.txnlist.length,
-               RELAYED: msg.txpow.header.timesecs},
+               RELAYED: msg.txpow.header.timesecs
+              },
                 true);
     } 
 
     Minima.init(function(msg){
-      if(msg.event == 'newtxpow') {
+      if(msg.event == 'connected'){
+
+        initTable();
+
+        Minima.sql("SELECT * from txpowlist WHERE ISBLOCK = 1 ORDER BY HEIGHT DESC LIMIT 100", function(res){
+          // Loop through the json rows arr and add..
+          $.each(res.response.rows, function(i, el){
+            table.addRow(el)
+          });
+    
+        });
+      
+      } else if(msg.event == 'newtxpow') {
         
         updateTableData(msg.info);
             

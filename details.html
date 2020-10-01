@@ -18,7 +18,9 @@
 <body>
 <script type="text/javascript">
 
-    window.addEventListener("load", function(res){
+    $(document).ready(function(){
+
+      Minima.init(function(msg){});
 
       var txpow_ = Minima.form.getParams("txpow");
 
@@ -49,16 +51,10 @@
         }
 
       });
-
-    });
-    
-    $(document).ready(function() {
-        
+     
       // check what mode is set.
       darkmode();
 
-      Minima.init(function(msg){});
-      
       // tool info display
       $('.tooltipped').tooltip();
 
