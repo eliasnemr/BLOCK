@@ -46,56 +46,6 @@
     
 }
 
-/** SEARCH BUTTON CLICK LISTENER */
-$("#searchBtn").on("click", function(){
-        
-  var query = $("#search-input").val();
-
-  if(query.length == 0) {
-    
-    setTimeout(function() {
-
-      M.toast({html:"Nothing found."});
-
-    }, 2000);
-
-  } else {
-    
-    window.location.href = "./search.html?query="+query;
-
-    return false;
-    
-  }
-});
-
-// ENTER KEY SEARCH
-$('#search-input').keypress(function(event){
-
-var keycode = (event.keyCode ? event.keyCode : event.which);
-
-if(keycode == '13'){
-
-  var query = $("#search-input").val();
-
-  if(query.length == 0) {
-  
-    setTimeout(function() {
-
-      M.toast({html:"Nothing found."});
-
-    }, 2000);
-
-  } else {
-    
-    window.location.href = "./search.html?query="+query;
-
-    return false;
-    
-  }
-}
-event.stopPropagation();
-});
-
 // JQUERY Helpful Functions
 $(document).ready(function() {
   
