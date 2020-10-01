@@ -3,7 +3,7 @@
   /** Create SQL Table */
   function createSQL(){
     Minima.sql(INITSQL, function(resp){
-      Minima.log("Created SQL"); 
+      //Minima.log("Created SQL"); 
     
     if(!resp.status){
 
@@ -27,8 +27,6 @@
         //Minima.log("TxPoW Added To SQL Table.. ");
       }
     });
-    
-    
   }
 
   function pruneData() {

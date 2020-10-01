@@ -1,126 +1,100 @@
   // INIT Tabulator blocks-table..
-  var table;
+  var table = null;
   function initTable() {
-    $(document).ready(function(){
-      Minima.sql("SELECT * from txpowlist WHERE ISBLOCK = 1 ORDER BY HEIGHT DESC LIMIT 100", function(res){
-        // Create a tabulator instance, and refer it to the div canvas
-        table = new Tabulator("#example-table", {
-          maxHeight: "660",
-          layout: "fitColumns",
-          resizableColumns: false,
-          responsiveLayout:true,
-          headerSort: false,
-          index:"HEIGHT",
-          columns:[
+    // Create a tabulator instance, and refer it to the div canvas
+    table = new Tabulator("#example-table", {
+      maxHeight: "660",
+      layout: "fitColumns",
+      resizableColumns: false,
+      responsiveLayout: true,
+      headerSort: false,
+      index:"HEIGHT",
+      columns:[
 
-            {title:"TxPoW", field:"TXPOW", visible: false},
+        {title:"TxPoW", field:"TXPOW", visible: false},
 
-            {title: "Height", field: "HEIGHT", sorter: "number", headerSortStartingDir:"desc", width: 65, widthShrink:2, cssClass: "height-column"},
+        {title: "Height", field: "HEIGHT", sorter: "number", headerSortStartingDir:"desc", width: 65, widthShrink:2, cssClass: "height-column"},
 
-            {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
-              var hash = cell.getData();
-              // hash = hash.HASH.substring(0, 15) + "..." + hash.HASH.substring(hash.HASH.length-80, hash.HASH.length);
-              hash = hash.HASH;
-              return hash;
-            }},
-            {title: "isblock", field:"isblock", visible: false},
+        {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
+          var hash = cell.getData();
+          // hash = hash.HASH.substring(0, 15) + "..." + hash.HASH.substring(hash.HASH.length-80, hash.HASH.length);
+          hash = hash.HASH;
+          return hash;
+        }},
+        {title: "isblock", field:"isblock", visible: false},
 
-            {title: "TXNS", field:"TXNS", width:50, widthShrink:3, hozAlign: "center"},
+        {title: "TXNS", field:"TXNS", width:50, widthShrink:3, hozAlign: "center"},
 
-            {title: "Relayed", field:"RELAYED", width: 110, hozAlign: "left", formatter:function(cell, formatterParams){
-                var time = cell.getData();
-                time = moment(time.RELAYED*1000).format("HH:mm:ss");
-                // time = new Date(parseInt(time.RELAYED*1000, 10)).toISOString();
-                // time = moment(time).fromNow();
-                return time;
-            }},
+        {title: "Relayed", field:"RELAYED", width: 110, hozAlign: "left", formatter:function(cell, formatterParams){
+            var time = cell.getData();
+            time = moment(time.RELAYED*1000).format("HH:mm:ss");
+            // time = new Date(parseInt(time.RELAYED*1000, 10)).toISOString();
+            // time = moment(time).fromNow();
+            return time;
+        }},
 
-          ],
-          rowClick:function(e, row){
+      ],
+      rowClick:function(e, row){
 
-            var clicked_row = row._row.data;
-          
-            window.location.href = './details.html?txpow='+clicked_row.HASH;
+        var clicked_row = row._row.data;
+      
+        window.location.href = './details.html?txpow='+clicked_row.HASH;
 
-            return false;
-          },
-        });
-        
-        var temp = [];
-        // Loop through the json rows arr and add..
-        $.each(res.response.rows, function(i, el){
-          temp.push(el);
-        });
-        
-        /** SET Data to the Tabulator REF */
-        table.setData(temp)
-        .then(function(){
-
-            //run code after table has been successfully updated
-            //console.log("TABULATOR: Added new data to the Table");
-
-        })
-        .catch(function(error){
-
-            //handle error loading data
-            console.log(error);
-
-        });
-
-      /** SEARCH BUTTON CLICK LISTENER */
-      $("#searchBtn").on("click", function(){
-        
-        var query = $("#search-input").val();
-
-        if(query.length == 0) {
-          
-          setTimeout(function() {
-
-            M.toast({html:"Nothing found."});
-
-          }, 2000);
-
-        } else {
-          
-          window.location.href = "./search.html?query="+query;
-
-          return false;
-          
-        }
-
-        
-      });
-
-      // ENTER KEY SEARCH
-      $('#search-input').keypress(function(event){
-
-        var keycode = (event.keyCode ? event.keyCode : event.which);
-
-        if(keycode == '13'){
-
-          var query = $("#search-input").val();
-
-          if(query.length == 0) {
-          
-            setTimeout(function() {
-  
-              M.toast({html:"Nothing found."});
-  
-            }, 2000);
-  
-          } else {
-            
-            window.location.href = "./search.html?query="+query;
-  
-            return false;
-            
-          }
-        }
-        event.stopPropagation();
-      });
+        return false;
+      },
     });
-  });
+    
 }
+
+/** SEARCH BUTTON CLICK LISTENER */
+$("#searchBtn").on("click", function(){
+        
+  var query = $("#search-input").val();
+
+  if(query.length == 0) {
+    
+    setTimeout(function() {
+
+      M.toast({html:"Nothing found."});
+
+    }, 2000);
+
+  } else {
+    
+    window.location.href = "./search.html?query="+query;
+
+    return false;
+    
+  }
+});
+
+// ENTER KEY SEARCH
+$('#search-input').keypress(function(event){
+
+var keycode = (event.keyCode ? event.keyCode : event.which);
+
+if(keycode == '13'){
+
+  var query = $("#search-input").val();
+
+  if(query.length == 0) {
+  
+    setTimeout(function() {
+
+      M.toast({html:"Nothing found."});
+
+    }, 2000);
+
+  } else {
+    
+    window.location.href = "./search.html?query="+query;
+
+    return false;
+    
+  }
+}
+event.stopPropagation();
+});
 
 // JQUERY Helpful Functions
 $(document).ready(function() {
@@ -185,8 +159,6 @@ function darkmode() {
     $(document).ready(function() {
     
     txpow = JSON.parse(txpow.response.rows[0].TXPOW);
-
-    console.log(txpow);
 
     $("#hash").html(txpow.txpowid);
 
