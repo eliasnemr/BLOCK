@@ -31,6 +31,12 @@
       }
     });
   }
+  function pruneData(height) {
+    if(height % 100 == 0) {
+      height = height - 777600;
+      Minima.sql("DELETE FROM txpowlist WHERE height <="+height, function(res){});
+    }
+  }
 
 Minima.init(function(msg){
     if(msg.event == 'connected') {
@@ -40,6 +46,8 @@ Minima.init(function(msg){
     } else if(msg.event == 'newtxpow') {
     
       addTxPoW(msg.info.txpow);
+
+      pruneData(msg.info.txpow.header.block);
         
     } 
 });

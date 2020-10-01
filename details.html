@@ -25,6 +25,7 @@
       var txpow_ = Minima.form.getParams("txpow");
 
       Minima.sql("SELECT * FROM txpowlist WHERE HASH = '"+txpow_+"'", function(txpow){
+        
         if(txpow.response.rows.length > 0) {
           setDetails(txpow);
         } else {
@@ -224,6 +225,13 @@ function txnClicked(hash) {
   </div>
   
 </script>
+<script id="scriptTemplate" type="text/x-jsrender">
+  {{for scripts}}
+  <li class="secondary-content">
+    {{:script}}
+  </li>
+  {{/for}}
+</script>
   <div class="navbar-fixed">
   <nav class="minima-black-bg lighten" role="navigation">
   <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">
@@ -312,6 +320,17 @@ function txnClicked(hash) {
             </a>
           </div>
         </li>
+        <li id="_type" style="display:none;" class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Transaction type"><div>Transaction Type
+          <a href="#!" id="type" class="secondary-content">
+          </a>
+        </div>
+      </li>
+        <li style="display: none;" id="_token" class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Name of token created in this TXN"><div>Token name
+          <a href="#!" id="token" class="secondary-content">
+          </a>
+        </div>
+      </li>
+        
 
         </ul>
         

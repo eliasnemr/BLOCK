@@ -111,9 +111,7 @@ function darkmode() {
     txpow = JSON.parse(txpow.response.rows[0].TXPOW);
 
     $("#hash").html(txpow.txpowid);
-
     $("#nav-blocks").html("Block "+txpow.header.block);
-
     $("#height").html(txpow.header.block);
 
     if(txpow.isblock == true){
@@ -127,31 +125,29 @@ function darkmode() {
     }
 
     $("#nonce").html(txpow.header.nonce);
-
     $("#superparents-amnt").html(txpow.superblock);
-
     var time = moment(txpow.header.timesecs*1000).format("DD MMMM YYYY HH:MM a");
-
     $("#timestamp").html(time);
-
     $("#header").html("Block "+ txpow.header.block);
-
     $("#outputs").html(txpow.body.txn.outputs.length);
-
     $("#inputs").html(txpow.body.txn.inputs.length);
-
     $("#txns").html(txpow.body.txnlist.length);
-
     $("#size").html(txpow.size);
-
     $("#parent").html(txpow.header.superparents[0].parent);
-
+    if(txpow.body.txn.inputs.length > 0) {
+      $("#_type").css("display", "block");
+      $("#type").html("Value transfer");
+    }
+    if(txpow.body.txn.tokengen) {
+      $("#token").html(txpow.body.txn.tokengen.token);
+      $("#_token").css("display", "block");
+      $("#type").html("Token creation");
+    } 
     var state = txpow.body.txn.state;
     if(state.length > 0 && state[0].data == '01000100') {
       $('#msg').css("display", "block");
       $('#message').html(state[1].data);
     }
-
     if(txpow.body.txn.inputs.length > 0){
 
       var tmpl = $.templates('#txn-template');
@@ -241,62 +237,5 @@ function darkmode() {
       }
 
     });
-
-  }
-
-  // txn-details functions 
-  function setTXNDetails(index, prev, txpow) {
-
-    // parse txpow 
-    $('#txn-header').html("TXN #"+index);
-    $('#nav-blocks').html("Block "+prev);
-    $('#nav-txn').html("TXN #"+index);
-    $('#hash').html(txpow.txpowid);
-    //moment.js format time
-    var time = moment(txpow.header.timesecs*1000).format("DD MMMM YYYY HH:MM a");
-    $('#received').html(time);
-    $('#nonce').html(txpow.header.nonce);
-    $('#size').html(txpow.size);
-    $('#block').html(txpow.header.block);
-    $('#inputs').html(txpow.body.txn.inputs.length);
-    $('#outputs').html(txpow.body.txn.outputs.length);
-    $('#txns').html(txpow.body.txnlist.length);
-    $('#parent').html(txpow.header.superparents[0].parent);
-
-    if(txpow.isblock == true) {
-      $('#isblock').html("Yes");
-    } else {
-      $('#isblock').html("No");
-    }
-    var state = txpow.body.txn.state;
-    if(state.length > 0 && state[0].data == '01000100') {
-      $('#msg').css("display", "block");
-      $('#message').html(state[1].data);
-    }
-
-    var inputs = []; var outputs = [];var scripts = [];
-    if(txpow.body.txn.inputs.length > 0) {
-
-      $.each(txpow.body.witness.scripts, function(i, el){
-        scripts.push({script_index: i, script: el.script, data: el.proof.data, hashbits: el.proof.hashbits, proofchain: el.proof.proofchain, chainsha: el.proof.chainsha, finalhash: el.proof.finalhash });
-      });
-      // get TXN inputs
-      $.each(txpow.body.txn.inputs, function(i, el){
-        inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount, inTokenID: el.tokenid, inFloating: el.floating, inRemainder: el.remainder, scripts: scripts});
-      });
-      // get TXN outputs
-      $.each(txpow.body.txn.outputs, function(i, el){
-        outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount, outTokenID: el.tokenid, outFloating: el.floating, outRemainder: el.remainder});
-      });
-
-      var tmpl = $.templates('#txn-template');
-
-      arr = { txn_index: 0, inputs: inputs, outputs: outputs };
-
-      var html = tmpl.render(arr)
-
-      $('#details').after(html);
-    
-    }
 
   }

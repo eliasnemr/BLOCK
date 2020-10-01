@@ -288,11 +288,11 @@
   }
   .script {
     font-size: 14px;;
-    word-wrap: break-word;
-    white-space: pre-line;
-    word-break: break-all;
     overflow-wrap: break-word;
-    hyphens: manual;
+    word-wrap: break-word;
+    word-break: break-all;
+    hyphens: auto;
+    white-space: pre-wrap;
   }
   #txn-wrapper {
     overflow-wrap: break-word;
