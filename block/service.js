@@ -32,10 +32,15 @@
     });
   }
   function pruneData(height) {
-    if(height % 100 == 0) {
-      height = height - 777600;
-      Minima.sql("DELETE FROM txpowlist WHERE height <="+height, function(res){});
+    if(localStorage.getItem('pruningOff') == false || localStorage.getItem('pruningOff') == null){
+      var setPruning = localStorage.getItem("pruning");
+      console.log("Pruning set on:"+setPruning);
+      if(height % 100 == 0) {
+        height = height - setPruning;
+        Minima.sql("DELETE FROM txpowlist WHERE height <="+height, function(res){});
+      }
     }
+    
   }
 
 Minima.init(function(msg){

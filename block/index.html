@@ -21,17 +21,16 @@
 
 <body>
   <nav class="menu minima-black-bg navbar-fixed" data-target="menu" role="navigation">
-    <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">
+    <div class="nav-wrapper container"><a id="logo-container" href="index.html" class="brand-logo">
     <img style="width: 110px; padding-top: 11px;" class="hide-on-small-only" src="assets/blocklogowhitetext.svg">
     <img style="width: 80px; padding-top: 10px; padding-bottom: 0px;" class="hide-on-large-only hide-on-med-only" src="assets/blocklogowhitetext.svg">
     </a>
 
     <ul id="slide-out" class="right minima-blue-txt">
       <li><a 
-      class="dark-toggle" 
-      href="#" 
-      title="Dark/light">
-       <i class="material-icons left">brightness_4</i></a>
+      href="settings.html" 
+      title="Setting">
+       <i class="material-icons left">build</i></a>
       </li>
       </ul>
     </div>
@@ -231,23 +230,6 @@ $(document).ready(function() {
 
       table.redraw(true);    
   });
-
-  // SWAP ICON ON CLICK
-  // Source: https://stackoverflow.com/a/34254979/751570
-  $('.dark-toggle').on('click',function(){
-    if ($(this).find('i').text() == 'brightness_4'){
-        $(this).find('i').text('brightness_high');
-        $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
-        $('body').addClass("dark");
-        localStorage.setItem('mode', 'dark');
-    } else {
-        $(this).find('i').text('brightness_4');
-        $('.body-icon').attr("src", "assets/blocklogo.svg");
-        $('body').removeClass("dark");
-        localStorage.setItem('mode', 'light');
-    }
-  });
-
 });
 </script>
 

@@ -8236,5 +8236,15 @@ body.dark .toast {
   background-color: #000000 !important;
   color: #34A69A !important;
 }
+body.dark .dropdown-content .disabled span {
+  color: #e2e2e2 !important;
+}
+body.dark .caret {
+  filter: invert(27%) sepia(35%) saturate(2000%) hue-rotate(346deg) brightness(104%) contrast(97%);
+}
+body.dark #tool {
+  filter: invert(27%) sepia(51%) saturate(2000%) hue-rotate(346deg) brightness(104%) contrast(97%);
+}
+
 
 /*# sourceMappingURL=style.css.map */

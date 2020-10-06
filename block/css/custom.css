@@ -331,3 +331,9 @@
     background-color: rgb(238,110,115);
     border: 1px solid;
   }
+  .setting-item {
+    padding: 10px 10px 10px 18px !important;
+  }
+  .select-dropdown {
+    font-size: 14px !important;
+  }
