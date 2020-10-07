@@ -37,7 +37,7 @@
         var json = JSON.parse(res.data);
         if(json.status) {
           var setPruning = json.period;
-          if(height % 10 == 0) {
+          if(height % 1000 == 0) {
             height = height - setPruning;
             Minima.sql("DELETE FROM txpowlist WHERE height <="+height, function(){}); 
           }
