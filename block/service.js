@@ -32,19 +32,35 @@
     });
   }
   function pruneData(height) {
-    if(localStorage.getItem('pruningOff') == false || localStorage.getItem('pruningOff') == null){
-      var setPruning = localStorage.getItem("pruning");
-      console.log("Pruning set on:"+setPruning);
-      if(height % 100 == 0) {
-        height = height - setPruning;
-        Minima.sql("DELETE FROM txpowlist WHERE height <="+height, function(res){});
-      }
-    }
-    
+    Minima.file.load("prune.txt", function(res){
+      if(res.success) {
+        var json = JSON.parse(res.data);
+        if(json.status) {
+          var setPruning = json.period;
+          if(height % 10 == 0) {
+            height = height - setPruning;
+            Minima.sql("DELETE FROM txpowlist WHERE height <="+height, function(){}); 
+          }
+        }
+        
+      } 
+    });    
   }
 
 Minima.init(function(msg){
     if(msg.event == 'connected') {
+      // create json to save in file for pruning
+      const prune = 
+      {
+          "status": true,
+          "period": 388800
+      };
+      Minima.file.save(JSON.stringify(prune), "prune.txt", function(res){
+        if(!res.success) {
+          Minima.log("File saving rejected!");
+        }            
+      });
+
       // init SQL DB for blocks
       createSQL();
   

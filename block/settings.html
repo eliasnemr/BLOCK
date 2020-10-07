@@ -53,52 +53,85 @@
 
   
   <script>
-
     document.addEventListener('DOMContentLoaded', function() {
-        var selectedData = localStorage.getItem('pruning');
-        if(selectedData == null || selectedData.length == 0) {
+        
+        Minima.init(function(){});
+        
+        new Promise((resolve, reject)=> {
 
-        } else if(selectedData !== "everything") {
-            document.getElementById('select-prune').value = selectedData;
+            Minima.file.load("prune.txt", function(res){
+                if(res.success){
+                    resolve(res);
+                } else {
+                    reject();
+                }
+            });
 
-        } else {
-            document.getElementById('select-prune').value = "everything";
-        }
-
-        var elems = document.querySelector('select');
-        var dropdownOptions = {
-            coverTrigger: false
-        }
-        var instances = M.FormSelect.init(elems, dropdownOptions );
+        }).then(res  => {
+            var json = JSON.parse(res.data);
+            var status = json.status;
+            if(status) {
+                document.getElementById('select-prune').value = json.period;
+                var elems = document.querySelector('select');
+                var dropdownOptions = {
+                    coverTrigger: false
+                }
+                var instances = M.FormSelect.init(elems, dropdownOptions );
+            } else if(!status) {
+                document.getElementById('select-prune').value = "everything";
+                var elems = document.querySelector('select');
+                var dropdownOptions = {
+                    coverTrigger: false
+                }
+                var instances = M.FormSelect.init(elems, dropdownOptions );
+            }  
+        });
+        
+        
     });
 
     $(document).ready(function(){
         $("#select-prune").change(function(){
+            // create json to save in file for pruning
+            const prune = 
+            {
+                "status": true,
+                "period": 388800
+            };
             var selectedLength = $(this).children("option:selected").val();
             
             if(selectedLength == 30240) {
-                localStorage.setItem("pruning", 30240); // 4320 a day x 7
-
+                prune.period = 30240;
+                Minima.file.save(JSON.stringify(prune), "prune.txt", function(res){
+                    if(res.success) {}        
+                }); 
             } else if(selectedLength == 129600) {
-                localStorage.setItem("pruning", 129600); // 4320 a day x 30
-
+                prune.period = 129600;
+                Minima.file.save(JSON.stringify(prune), "prune.txt", function(res){
+                    if(res.success) {}       
+                });
             } else if(selectedLength == 388800) {
-                localStorage.setItem("pruning", 388800); // 4320 a day x 30 x 3
-
+                prune.period = 388800;
+                Minima.file.save(JSON.stringify(prune), "prune.txt", function(res){
+                    if(res.success) {}     
+                });
             } else if(selectedLength == 777600) {
-                localStorage.setItem("pruning", 777600); // 4320 a day x 30 x 6
-
-            }else if(selectedLength == 1555200) {
-                localStorage.setItem("pruning", 1555200); // 4320 a day x 30 x 6
-
+                prune.period = 777600;
+                Minima.file.save(JSON.stringify(prune), "prune.txt", function(res){
+                    if(res.success) {}    
+                });
+            } else if(selectedLength == 1555200) {
+                prune.period = 1555200;
+                Minima.file.save(JSON.stringify(prune), "prune.txt", function(res){
+                    if(res.success) {}     
+                });
             } else if(selectedLength == "everything") {
-                localStorage.setItem("pruningOff", true); // everything..
-                localStorage.setItem("pruning", "everything"); // everything..
-
-
+                prune.status = false;
+                Minima.file.save(JSON.stringify(prune), "prune.txt", function(res){
+                    if(res.success) {} 
+                });
             } 
             
-
         });
 
 
