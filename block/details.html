@@ -52,9 +52,22 @@
         }
 
       });
-     
-      // check what mode is set.
-      darkmode();
+      
+      // dark mode
+      Minima.file.load("userPreference.txt", function(res){
+        if(res.success){
+          var preference = JSON.parse(res.data);
+    
+          if(preference.mode == "dark"){
+            $('body').addClass("dark");
+            $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
+          } else if(preference.mode == "light"){
+            $('body').removeClass("dark");  
+            $('.body-icon').attr("src", "assets/blocklogo.svg");
+          }
+        }
+    
+      });
 
       // tool info display
       $('.tooltipped').tooltip();

@@ -14,7 +14,6 @@
   <!-- Scripts. -->
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.7.1/dist/js/tabulator.min.js"></script>
   <script src="js/jquery-3.5.1.min.js"></script>
-  <script src="js/Minima/functions/functions.js"></script>
   <script src="js/moment.js"></script>
   <script src="js/Minima/minima.js"></script>
 
@@ -27,6 +26,22 @@
             Minima.init(function(msg){
 
                 if(msg.event == "connected") {
+
+                    // dark mode
+                    Minima.file.load("userPreference.txt", function(res){
+                      if(res.success){
+                        var preference = JSON.parse(res.data);
+                  
+                        if(preference.mode == "dark"){
+                          $('body').addClass("dark");
+                          $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
+                        } else if(preference.mode == "light"){
+                          $('body').removeClass("dark");  
+                          $('.body-icon').attr("src", "assets/blocklogo.svg");
+                        }
+                      }
+                  
+                    });
 
                     var query = Minima.form.getParams("query");
                     var results = []; var search = [];
@@ -158,7 +173,6 @@
 
   <script>
     $(document).ready(function() {
-    
       // load more btn
       $('.load-more-btn').on('click', function(){
     
@@ -175,5 +189,7 @@
   </script>
 
   <script src="js/bin/materialize.js"></script>
+  <script src="js/Minima/functions/functions.js"></script>
+
   </body>
 </html>

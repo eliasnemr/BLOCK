@@ -48,16 +48,22 @@
 
 // JQUERY Helpful Functions
 $(document).ready(function() {
+
+  Minima.file.load("userPreference.txt", function(res){
+    if(res.success){
+      var preference = JSON.parse(res.data);
+
+      if(preference.mode == "dark"){
+        $('body').addClass("dark");
+        $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
+      } else if(preference.mode == "light"){
+        $('body').removeClass("dark");  
+        $('.body-icon').attr("src", "assets/blocklogo.svg");
+      }
+    }
+
+  });
   
-  if(localStorage.getItem('mode') == 'dark'){
-    $('body').addClass("dark");
-    $('.dark-toggle').find('i').text('brightness_high');
-    $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
-  } else if (localStorage.getItem('mode') == 'light') {
-    $('body').removeClass("dark");
-    $('.dark-toggle').find('i').text('brightness_4');
-    $('.body-icon').attr("src", "assets/blocklogo.svg");
-  }
 
   // Materialize tooltip
   $('.tooltipped').tooltip({delay: 50});
@@ -72,20 +78,6 @@ $(document).ready(function() {
 
 
 });
-
-function darkmode() {
-  // check for mode
-  if(localStorage.getItem('mode') == 'dark'){
-
-  $('body').addClass("dark");
-
-  } else if (localStorage.getItem('mode') == 'light') {
-
-    $('body').removeClass("dark");
-
-  }
-
-  }
 
   function copy(id) {
     var textToCopy = document.getElementById(id).innerText;

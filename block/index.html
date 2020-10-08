@@ -108,7 +108,6 @@
 <!-- Minima.js -->
 <script type="text/javascript">
   $(document).ready(function(){
-
     /** Update Tabulator Table with new blocks */
     function updateTableData(msg) {       
       var isblock = 0;
@@ -134,7 +133,7 @@
 
     Minima.init(function(msg){
       if(msg.event == 'connected'){
-
+        
         initTable();
 
         Minima.sql("SELECT * from txpowlist WHERE ISBLOCK = 1 ORDER BY HEIGHT DESC LIMIT 100", function(res){
@@ -215,6 +214,21 @@ $(document).ready(function() {
   event.stopPropagation();
   });
 
+  // dark mode
+  Minima.file.load("userPreference.txt", function(res){
+    if(res.success){
+      var preference = JSON.parse(res.data);
+
+      if(preference.mode == "dark"){
+        $('body').addClass("dark");
+        $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
+      } else if(preference.mode == "light"){
+        $('body').removeClass("dark");  
+        $('.body-icon').attr("src", "assets/blocklogo.svg");
+      }
+    }
+
+  });
 
   // load more btn
   $('.load-btn').on('click', function(){

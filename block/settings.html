@@ -90,6 +90,21 @@
         
     });
 
+    Minima.file.load("userPreference.txt", function(res){
+        if(res.success){
+          var preference = JSON.parse(res.data);
+    
+          if(preference.mode == "dark"){
+            $('body').addClass("dark");
+            $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
+          } else if(preference.mode == "light"){
+            $('body').removeClass("dark");  
+            $('.body-icon').attr("src", "assets/blocklogo.svg");
+          }
+        }
+    
+      });
+
     $(document).ready(function(){
         $("#select-prune").change(function(){
             // create json to save in file for pruning
@@ -135,19 +150,35 @@
         });
 
 
-        if(localStorage.getItem('mode') == 'dark'){
-            $('#checkbox').prop('checked', true);
-        } else if(localStorage.getItem('mode') == 'light') {
-            $('#checkbox').prop('checked', false);
-        }
+        Minima.file.load("userPreference.txt", function(res){
+            if(res.success){
+                var preference = JSON.parse(res.data);
+
+                if(preference.mode == "dark"){
+                    $('#checkbox').prop('checked', true);
+                } else if(preference.mode == "light"){
+                    $('#checkbox').prop('checked', false);
+                }
+            }
+        });
 
         $('#checkbox').on("change", function(res){
+
+            const preference = {
+                "mode": "light"
+            }
             if($(this).prop('checked')) {
                 $('body').addClass("dark");
-                localStorage.setItem('mode', 'dark');
+                preference.mode = "dark";
+                var json = JSON.stringify(preference);
+
+                Minima.file.save(json, "userPreference.txt", function(res){});
             } else if(!$(this).prop('checked')) {
                 $('body').removeClass("dark");
-                localStorage.setItem('mode', 'light');
+                preference.mode = "light";
+                var json = JSON.stringify(preference);
+
+                Minima.file.save(json, "userPreference.txt", function(res){});
             }
         });
     });
