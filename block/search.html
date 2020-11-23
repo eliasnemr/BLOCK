@@ -17,159 +17,167 @@
   <script src="js/moment.js"></script>
   <script src="js/Minima/minima.js"></script>
 
-  <script>
-      var search_table;
-      window.addEventListener("load", function(res){
-        
-        $(document).ready(function(){
 
-            Minima.init(function(msg){
-
-                if(msg.event == "connected") {
-
-                    // dark mode
-                    Minima.file.load("userPreference.txt", function(res){
-                      if(res.success){
-                        var preference = JSON.parse(res.data);
-                  
-                        if(preference.mode == "dark"){
-                          $('body').addClass("dark");
-                          $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
-                        } else if(preference.mode == "light"){
-                          $('body').removeClass("dark");  
-                          $('.body-icon').attr("src", "assets/blocklogo.svg");
-                        }
-                      }
-                  
-                    });
-
-                    var query = Minima.form.getParams("query");
-                    var results = []; var search = [];
-                    Minima.sql("SELECT * FROM txpowlist WHERE TXPOW LIKE '%"+query+"%' ORDER BY RELAYED", function(res){
-                        search = [];
-                        $.each(res.response.rows, function(i, el){
-                            search.push(el);
-                        });
-
-                        if(res.response.rows.length > 1){
-                            $('#navbar-search').text("Showing "+res.response.rows.length+" results..");
-                        } else if(res.response.rows.length == 1){
-                            $('#navbar-search').text("Showing "+res.response.rows.length+" result..");
-                        } else {
-                            $('#navbar-search').text("No results found..");
-                        }
-
-                        if(res.response.rows.length <= 10) {
-                          $('.load-btn').css("display", "none");
-                        } 
-                        
-                        search_table = new Tabulator("#results-table", {
-                            initialSort:[
-                                {column: "HEIGHT", dir:"desc"}
-                            ],
-                            maxHeight: "660",
-                            layout: "fitColumns",
-                            resizableColumns: false,
-                            responsiveLayout: true,
-                            headerSort: false,
-                            index: "HEIGHT",
-                            columns: [
-                                {title:"txpow", field:"TXPOW", visible:false},
-                                {title: "Height", field: "HEIGHT", sorter: "number", width: 65, widthShrink:2, cssClass: "height-column"},
-                                {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
-                                    var hash = cell.getData();
-                                    hash = hash.HASH;
-                                    return hash;
-                                }},
-                                {title: "isblock", field:"isblock", visible: false},
-                                {title: "TXNS", field:"TXNS", width:50, widthShrink:3, hozAlign: "center"},
-                                {title: "Relayed", field:"RELAYED", width: 110, hozAlign: "left", formatter:function(cell, formatterParams){
-                                    var time = cell.getData();
-                                    time = moment(time.RELAYED*1000).format("HH:mm:ss");
-                                    return time;
-                                }},
-                            ],
-                            rowClick: function(e, row) {
-                                var clicked_row = row._row.data;
-                                window.location.href = './details.html?txpow='+clicked_row.HASH;
-                                return false;
-                            }
-                        });
-                        // set the data
-                        search_table.setData(search);
-
-                    });
-
-                }
-
-            });
-        });
-
-      });
-  </script>
 </head>
 
 <body>
-  <nav class="menu minima-black-bg navbar-fixed" data-target="menu" role="navigation">
-    <div class="nav-wrapper container"><a id="logo-container" href="index.html" class="brand-logo">
-    <img style="width: 110px; padding-top: 11px;" class="hide-on-small-only" src="assets/blocklogowhitetext.svg">
-    <img style="width: 80px; padding-top: 10px; padding-bottom: 0px;" class="hide-on-large-only hide-on-med-only" src="assets/blocklogowhitetext.svg">
-    </a>
-    </div>
-  </nav>
+  <script>
+    var search_table;
+    window.addEventListener("load", function(res){
+      
+      $(document).ready(function(){
 
-  <nav class="menu minima-grey-bg explorer-wrapper navbar-fixed" data-target="menu">
-    <div class="nav-wrapper container">
-      <div class="col s12">
-        <a href="index.html" class="breadcrumb explorer">Explorer</a>
-        <a href="index.html" class="breadcrumb explorer" id="navbar-search"></a>
+          Minima.init(function(msg){
 
+              if(msg.event == "connected") {
+
+                  // dark mode
+                  Minima.file.load("userPreference.txt", function(res){
+                    if(res.success){
+                      var preference = JSON.parse(res.data);
+                
+                      if(preference.mode == "dark"){
+                        $('body').addClass("dark");
+                        $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
+                      } else if(preference.mode == "light"){
+                        $('body').removeClass("dark");  
+                        $('.body-icon').attr("src", "assets/blocklogo.svg");
+                      }
+                    }
+                
+                  });
+
+                  var query = Minima.form.getParams("query");
+                  var results = []; var search = [];
+                  Minima.sql("SELECT * FROM txpowlist WHERE TXPOW LIKE '%"+query+"%' ORDER BY RELAYED", function(res){
+                      search = [];
+                      $.each(res.response.rows, function(i, el){
+                          search.push(el);
+                      });
+
+                      if(res.response.rows.length > 1){
+                          $('#navbar-search').text("Showing "+res.response.rows.length+" results..");
+                      } else if(res.response.rows.length == 1){
+                          $('#navbar-search').text("Showing "+res.response.rows.length+" result..");
+                      } else {
+                          $('#navbar-search').text("No results found..");
+                      }
+
+                      if(res.response.rows.length <= 10) {
+                        $('.load-btn').css("display", "none");
+                      } 
+                      
+                      search_table = new Tabulator("#results-table", {
+                          initialSort:[
+                              {column: "HEIGHT", dir:"desc"}
+                          ],
+                          maxHeight: "660",
+                          layout: "fitColumns",
+                          resizableColumns: false,
+                          responsiveLayout: true,
+                          headerSort: false,
+                          index: "HEIGHT",
+                          columns: [
+                              {title:"txpow", field:"TXPOW", visible:false},
+                              {title: "Height", field: "HEIGHT", sorter: "number", width: '100', cssClass: "height-column"},
+                              {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
+                                  var hash = cell.getData();
+                                  hash = hash.HASH;
+                                  return hash;
+                              }},
+                              {title: "isblock", field:"isblock", visible: false},
+                              {title: "TXNS", field:"TXNS", width:70, widthShrink:3, hozAlign: "center"},
+                              {title: "Relayed", field:"RELAYED", width: 110, hozAlign: "left", formatter:function(cell, formatterParams){
+                                  var time = cell.getData();
+                                  time = moment(time.RELAYED*1000).format("HH:mm:ss");
+                                  return time;
+                              }},
+                          ],
+                          rowClick: function(e, row) {
+                              var clicked_row = row._row.data;
+                              window.location.href = './details.html?txpow='+clicked_row.HASH;
+                              return false;
+                          }
+                      });
+                      // set the data
+                      search_table.setData(search);
+
+                  });
+
+              }
+
+          });
+      });
+
+    });
+</script>
+<div id="wrapper">
+<header>
+  <nav class="menu navbar-fixed" role="navigation">
+    <div class="row">
+      <div style="padding-left:2.5%" class="col push-s1 s4">
+        <img style="width:120px" src="assets/block2.svg" alt="logo">
+      </div>
+
+      <div class="col s6">
+        <a class="right" href="settings.html" title="Setting"><i class="material-icons">build</i></a>
       </div>
     </div>
   </nav>
 
-  <!-- Body INFO -->
-  <div class="container" style="min-height: 100vh;"> 
-    <div class="section">
-
-
-    <!-- TABULATOR - BLOCKS table -->
-    <div class="row center">
-        <div id="results-table"></div>  
+  <nav class="menu navbar-fixed">
+    <div class="nav-wrapper">
+      <div class="row">
+        <div style="padding-left:2.5%" class="col offset-s1 s11">
+          <a href="index.html" class="breadcrumb explorer">Explorer</a>
+          <a href="index.html" class="breadcrumb explorer" id="navbar-search"></a>
+        </div>
+      </div>
     </div>
+  </nav>
+</header>
 
-    <div class="row center">
-      <a class="btn waves-effect waves-light load-btn load-more-btn"> Load More </a>
+  <div id="content">
+    <div class="row">
+      <div class="col s12">
+        <div id="results-table"></div>
+      </div>
     </div>
+    <div class="row">
+      <div class="col s12">
+        <a class="btn waves-effect waves-light load-btn load-more-btn">Load More</a>
+      </div>
     </div>
   </div>
 
+  <footer>
+    <div class="row">
+      <div  class="col offset-l1 l6 s12">
+          <img style="margin-left:5%" width="180" src="assets/minilogoblacklandscape.svg">
+          <span style="font-family: manrope-bold" id="testnet">Testnet</span>          
+      </div>
+      <div class="col l2 s12">
 
-  <footer class="page-footer minima-black-bg">
-    <div class="container">
-      <div class="row">
-        <div class="col l6 s12">
-          <div class="left-align">
-          <img width="180" src="assets/minilogoblacklandscape.svg">
-          </div>
-          <p class="grey-text">Block, the Minima Block Explorer.  Discover the heaviest leaf in the chain and traverse through.</p>
-        </div>
-        <div class="col l3 s12">
-
-        </div>
-        <div class="col l3 s12">
-          <h5 class="white-text">Connect</h5>
-          <ul>
-            <li><a class="grey-text" href="https://t.me/Minima_Global" target="_blank">Telegram</a></li>
-            <li><a class="grey-text" href="https://twitter.com/Minima_Global" target="_blank">Twitter</a></li>
-            <li><a class="grey-text" href="https://medium.com/minima-global" target="_blank">Medium</a></li>
-            <li><a class="grey-text" href="https://github.com/spartacusrex99/Minima" target="_blank">Github</a></li>
-            <li><a class="grey-text" href="https://minima.global/" target="_blank">Official Website</a></li>
-          </ul>
-        </div>
+      </div>
+      <div id="socials-s" class="col l4 s12 hide-on-med-and-up socials">
+        <a id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
+        <a><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
+        <a><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
+        <a><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
+        <a><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
+        <a><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
+      </div>
+      <div id="socials-b" class="col l4 s12 hide-on-small-only socials">
+        <a id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
+        <a><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
+        <a><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
+        <a><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
+        <a><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
+        <a><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
       </div>
     </div>
-  </footer>
+</footer>
+</div>
 
   <script>
     $(document).ready(function() {

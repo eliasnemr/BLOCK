@@ -10,9 +10,6 @@
   <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <link href="css/custom.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <script src="js/jquery-3.5.1.min.js"></script>
-  <script src="js/Minima/functions/functions.js"></script>
-
-
 </head>
 
 <body>
@@ -25,8 +22,8 @@
       var txpow_ = Minima.form.getParams("txpow");
 
       Minima.sql("SELECT * FROM txpowlist WHERE HASH = '"+txpow_+"'", function(txpow){
-        
-        if(txpow.response.rows.length > 0) {
+      
+        if(txpow && txpow.response.rows.length > 0) {
           setDetails(txpow);
         } else {
           // alert div 
@@ -105,6 +102,140 @@ function parentClicked() {
 function txnClicked(hash) {
   window.location.search = location.search.replace(/txpow=[^&$]*/i, 'txpow='+hash);
   return false;
+}
+function setDetails(txpow) {
+  $(document).ready(function() {
+  
+  txpow = JSON.parse(txpow.response.rows[0].TXPOW);
+
+  $("#hash").html(txpow.txpowid);
+  $("#nav-blocks").html("Block "+txpow.header.block);
+  $("#height").html(txpow.header.block);
+
+  if(txpow.isblock == true){
+
+      $("#isblock").html("Yes");
+
+  } else {
+
+      $("#isblock").html("No");
+
+  }
+
+  $("#nonce").html(txpow.header.nonce);
+  $("#superparents-amnt").html(txpow.superblock);
+  var time = moment(txpow.header.timesecs*1000).format("DD MMMM YYYY HH:MM a");
+  $("#timestamp").html(time);
+  $("#header").html("Block "+ txpow.header.block);
+  $("#outputs").html(txpow.body.txn.outputs.length);
+  $("#inputs").html(txpow.body.txn.inputs.length);
+  $("#txns").html(txpow.body.txnlist.length);
+  $("#size").html(txpow.size);
+  $("#parent").html(txpow.header.superparents[0].parent);
+  if(txpow.body.txn.inputs.length > 0) {
+    $("#_type").css("display", "block");
+    $("#type").html("Value transfer");
+  }
+  if(txpow.body.txn.tokengen) {
+    $("#token").html(txpow.body.txn.tokengen.token);
+    $("#_token").css("display", "block");
+    $("#type").html("Token creation");
+  } 
+  var state = txpow.body.txn.state;
+  if(state.length > 0 && state[0].data == '01000100') {
+    $('#msg').css("display", "block");
+    $('#message').html(state[1].data);
+  }
+  if(txpow.body.txn.inputs.length > 0){
+
+    var tmpl = $.templates('#txn-template');
+
+    var inputs = []; var outputs = []; var input_index; var output_index; var txn_index;
+    var scripts = [];
+    // get TXN input scripts
+    $.each(txpow.body.witness.scripts, function(i, el){
+      scripts.push({script_index: i, script: el.script, data: el.proof.data, hashbits: el.proof.hashbits, proofchain: el.proof.proofchain, chainsha: el.proof.chainsha, finalhash: el.proof.finalhash });
+    });
+    // get TXN inputs
+    $.each(txpow.body.txn.inputs, function(i, el){
+      inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount, inTokenID: el.tokenid, inFloating: el.floating, inRemainder: el.remainder, scripts: scripts});
+    });
+    // get TXN outputs
+    $.each(txpow.body.txn.outputs, function(i, el){
+      outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount, outTokenID: el.tokenid, outFloating: el.floating, outRemainder: el.remainder});
+    });
+
+    
+    // create txn
+    var txn = { txn_index: 0, inputs: inputs, outputs: outputs };
+
+    // render
+    var html = tmpl.render(txn);
+
+    $('.collection').after(html);
+
+  } else if(txpow.body.txn.inputs.length > 0 && txpow.body.txnlist.length > 0){
+
+    var tmpl = $.templates('#txn-template');
+    var tmpl_txnlist = $.templates('#txnlist-template');
+
+    var inputs = []; var outputs = [];var txnlist = []; var input_index; var output_index; var txn_index;
+    var scripts = [];
+    // get TXN input scripts
+    $.each(txpow.body.witness.scripts, function(i, el){
+      scripts.push({script_index: i, script: el.script, data: el.proof.data, hashbits: el.proof.hashbits, proofchain: el.proof.proofchain, chainsha: el.proof.chainsha, finalhash: el.proof.finalhash });
+    });
+    // get TXN inputs
+    $.each(txpow.body.txn.inputs, function(i, el){
+      inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount, inTokenID: el.tokenid, inFloating: el.floating, inRemainder: el.remainder, scripts: scripts});
+    });
+    // get TXN outputs
+    $.each(txpow.body.txn.outputs, function(i, el){
+      outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount, outTokenID: el.tokenid, outFloating: el.floating, outRemainder: el.remainder});
+    });
+    $.each(txpow.body.txnlist, function(i, el){
+      txnlist.push({index:i, hash: el});
+    });
+
+    // create txn
+    var txn = { txn_index: 0, inputs: inputs, outputs: outputs };
+    // render
+    var html = tmpl.render(txn);
+
+    // create txnlist 
+    var txnlist = { txnlist: txnlist};
+
+    var html_txnlist = tmpl_txnlist.render(txnlist);
+
+    $('.collection').after(html);
+    $('.collection').after(html_txnlist);
+
+    
+  } else if(!txpow.body.txn.inputs.length > 0 && txpow.body.txnlist.length > 0){
+    var txnlist = [];
+    var tmpl_txnlist = $.templates('#txnlist-template');
+
+    $.each(txpow.body.txnlist, function(i, el){
+      txnlist.push({index:i, hash: el});
+    });
+
+    localStorage.setItem("txnlist", JSON.stringify(txnlist));
+
+    // create txnlist 
+    var txnlist = { txnlist: txnlist };
+    // render inside the template
+    var html_txnlist = tmpl_txnlist.render(txnlist);
+    // add it to html
+    $('.collection').after(html_txnlist);
+  
+  } else {
+
+    $('.collection').after("<div class='row center'><a class='btn-small pulse tooltipped' data-html='true' data-position='right' data-tooltip='TEST'>Pulse TXN<i class='material-icons tip'>show_chart</i><i class='material-icons tip2' style='display:none;'>multiline_chart</i></a><p class='tip' style='display:none;'>This transaction is a Pulse, so it has no inputs and outputs.</p></div>");
+  
+    }
+
+  });
+
 }
 </script>
 <script id="txn-template" type="text/x-jsrender">
@@ -245,33 +376,42 @@ function txnClicked(hash) {
   </li>
   {{/for}}
 </script>
-  <div class="navbar-fixed">
-  <nav class="minima-black-bg lighten" role="navigation">
-  <div class="nav-wrapper container"><a id="logo-container" href="index.html" class="brand-logo">
-    <img style="width: 110px; padding-top: 11px;" class="hide-on-small-only" src="assets/blocklogowhitetext.svg">
-    <img style="width: 80px; padding-top: 10px; padding-bottom: 0px;" class="hide-on-large-only hide-on-med-only" src="assets/blocklogowhitetext.svg">
-    </a>
-  </div>
-  </nav>
-  </div>
-  <div class="navbar-fixed" id="direction">
-  <nav class="minima-grey-bg explorer-wrapper">
-    <div class="nav-wrapper container">
-      <div class="col s12">
-        <a href="index.html" class="breadcrumb explorer">Explorer</a>
-        <a href="#" class="breadcrumb explorer2" id="nav-blocks"></a>
+
+<div id="wrapper">
+<header>
+  <nav class="menu navbar-fixed" role="navigation">
+    <div class="row">
+      <div style="padding-left:2.5%" class="col push-s1 s4">
+        <img style="width:120px" src="assets/block2.svg" alt="logo">
+      </div>
+
+      <div class="col s6">
+        <a class="right" href="settings.html" title="Setting"><i class="material-icons">build</i></a>
       </div>
     </div>
   </nav>
-  </div>
-    <!-- Details BODY INFO -->
-    <div class="container" id="content">
-        <div class="section">
-            <div class="row">    
-            <i class='material-icons left info tooltipped' data-html='true' data-position='top' data-tooltip='Block number referencing at which height this block is currently in the Minima blockchain'>info</i>
-        <div id="header"></div>
-        
 
+  <nav class="menu navbar-fixed">
+    <div class="nav-wrapper">
+      <div class="row">
+        <div style="padding-left:2.5%" class="col offset-s1 s11">
+          <a href="index.html" class="breadcrumb explorer">Explorer</a>
+          <a href="#!" class="breadcrumb explorer" id="nav-blocks"></a>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+  
+    <!-- Details BODY INFO -->
+    <div id="content">
+        <div class="row">
+          <div class="col s12">
+            <i class='material-icons left info tooltipped' data-html='true' data-position='top' data-tooltip='Block number referencing at which height this block is currently in the Minima blockchain'>info</i>
+            <div id="header"></div>
+          </div>    
+        </div>
+         
         <ul class="collection">
           <li class="collection-item tooltipped" data-html="true" data-position="top" data-tooltip="Height number of current block in the chain"><div>Height
               <a href="#!" id="height" class="secondary-content"></a>
@@ -343,14 +483,9 @@ function txnClicked(hash) {
           </a>
         </div>
       </li>
-        
-
-        </ul>
-        
-            </div>
-        </div>
-    </div>
-
+      </ul>
+  </div>
+</div>
 <!--  Scripts-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.7/jsrender.min.js"></script>
 <script src="js/bin/materialize.js"></script>
