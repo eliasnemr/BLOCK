@@ -25,7 +25,9 @@
   function initTable() {
     // Create a tabulator instance, and refer it to the div canvas
     table = new Tabulator("#example-table", {
-      maxHeight: "660",
+      pagination: "local",
+      //maxHeight: "660",
+      paginationSize: 10,
       layout: "fitColumns",
       resizableColumns: false,
       responsiveLayout: "hide",
@@ -45,9 +47,9 @@
         }},
         {title: "isblock", field:"isblock", visible: false},
 
-        {title: "TXNS", field:"TXNS", width:70, widthShrink:3, responsive:3, hozAlign: "center"},
+        {title: "TXNS", field:"TXNS", width:70, headerHozAlign: "right", hozAlign:'right', widthShrink:3, responsive:3},
 
-        {title: "Relayed", field:"RELAYED", width: 110, hozAlign: "left", responsive:1, formatter:function(cell, formatterParams){
+        {title: "Relayed", field:"RELAYED", headerHozAlign: "right", hozAlign:'right', id:"relayed", width: 110, responsive:1, formatter:function(cell, formatterParams){
             var time = cell.getData();
             time = moment(time.RELAYED*1000).format("HH:mm:ss");
             // time = new Date(parseInt(time.RELAYED*1000, 10)).toISOString();
@@ -71,6 +73,7 @@
 // JQUERY Helpful Functions
 $(document).ready(function() {
 
+  // if dark mode is on - set toggle, add dark to body
   Minima.file.load("userPreference.txt", function(res){
     if(res.success){
       var preference = JSON.parse(res.data);
@@ -78,15 +81,91 @@ $(document).ready(function() {
       if(preference.mode == "dark"){
         $('body').addClass("dark");
         $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
+        $('#checkbox').prop('checked', true);
+
       } else if(preference.mode == "light"){
         $('body').removeClass("dark");  
         $('.body-icon').attr("src", "assets/blocklogo.svg");
+        $('#checkbox').prop('checked', false);
+
+      }
+    }
+
+  });
+
+  Minima.file.load("prune.txt", function(res){
+    if(res.success){
+      var pruning = JSON.parse(res.data);
+
+      if (pruning && pruning.status) {
+        var period = pruning.period;
+
+        $('#dropdown1 li').children().each( function() {
+            
+          if (this.id !== period) {
+            $(this).removeClass('active');
+          } else {
+            $(this).addClass('active');
+          } 
+
+        });
+
+
+      } else if(pruning && !pruning.status) {
+
+        $('#dropdown1 li').children().each( function() {
+            
+          if (this.id !== "Everything") {
+            $(this).removeClass('active');
+          } else {
+            $(this).addClass('active');
+          }
+
+        });
       }
     }
 
   });
   
+  // init dropdown
+  $('.dropdown-trigger').dropdown({coverTrigger: false, onCloseEnd: function(){
 
+    // here lelo
+    Minima.file.load("prune.txt", function(res){
+      if(res.success){
+        var pruning = JSON.parse(res.data);
+  
+        if (pruning && pruning.status) {
+          var period = pruning.period;
+  
+          $('#dropdown1 li').children().each( function() {
+              
+            if (this.id !== period) {
+              $(this).removeClass('active');
+            } else {
+              $(this).addClass('active');
+            } 
+  
+          });
+  
+  
+        } else if(pruning && !pruning.status) {
+  
+          $('#dropdown1 li').children().each( function() {
+              
+            if (this.id !== "Everything") {
+              $(this).removeClass('active');
+            } else {
+              $(this).addClass('active');
+            }
+  
+          });
+        }
+      }
+  
+    });
+
+  }});
   // Materialize tooltip
   $('.tooltipped').tooltip({delay: 50});
   
@@ -100,6 +179,55 @@ $(document).ready(function() {
 
 
 });
+
+$( "#dropdown1" ).on( "change", function(event, ui) {
+  // use ui.value for the value
+  console.log("smth changed..")
+});
+
+function setPrune(time) {
+  if(time == "Everything") {
+    const prune = {
+      status: false,
+      period: ""
+    }
+
+    Minima.file.save(JSON.stringify(prune), "prune.txt", function(res){
+      if (res.success) {
+        M.toast({html:"Turned pruning off!"});
+      }
+    });
+
+  } else if(time) {
+    const prune = {
+      status: true,
+      period: time
+    }
+
+    Minima.file.save(JSON.stringify(prune), "prune.txt", function(res){
+      if (res.success) {
+
+        if(time == '30240') {
+          M.toast({html:"Changed pruning to a week."});
+
+        } else if (time == '129600') {
+          M.toast({html:"Changed pruning to a month."});
+
+        } else if (time == '388800') {
+          M.toast({html:"Changed pruning to a 3 months."});
+
+        } else if (time == '777600') {
+          M.toast({html:"Changed pruning to 6 months."});
+
+        } else if (time == '1555200') {
+          M.toast({html:"Changed pruning to a year."});
+
+        }
+
+      }
+    });
+  }
+}
 
 function copy(id) {
   var textToCopy = document.getElementById(id).innerText;
@@ -263,29 +391,38 @@ function copy(id) {
   
   <div id="wrapper">
   <header>
-    <nav class="menu navbar-fixed" role="navigation">
-      <div class="row">
-        <div style="padding-left:2.5%" class="col push-s1 s4">
-          <img style="width:120px" src="assets/block2.svg" alt="logo">
-        </div>
-
-        <div class="col s6">
-          <a class="right" href="settings.html" title="Setting"><i class="material-icons">build</i></a>
+    <div class="menu navbar-fixed" role="navigation">
+      <div id="header" class="row">
+        <div style="padding-left:2.5%;padding-top:2.5%;padding-bottom:2%" class="col push-s1 s4">
+          <img style="width:200px;" src="assets/block2.svg" alt="logo">
         </div>
       </div>
-    </nav>
+    </div>
   
-    <nav class="menu navbar-fixed">
-      <div class="nav-wrapper">
-        <div class="row">
-
-          <div style="padding-left: 2.5%" class="col s1 pull-s3">
-            <a href="index.html" class="breadcrumb explorer">Explorer</a>
-          </div>
-
+    <div id="nav-wrapper" class="row">
+      <div class="col">
+        <div class="switch">
+          <label>
+            Night mode
+            <input id="checkbox" type="checkbox">
+            <span class="lever"></span>
+          </label>
         </div>
       </div>
-    </nav>
+      <div class="col">
+        <div class="prune-dd">
+          <a class='dropdown-trigger' href='#' data-target='dropdown1'><label>Pruning <i class="material-icons">arrow_drop_down</i></label></a> 
+          <ul id='dropdown1' class='dropdown-content'>
+            <li><a id="30240" onclick="setPrune('30240')" href="#!">1 week</a></li>
+            <li><a id="129600" onclick="setPrune('129600')" href="#!">1 month</a></li>
+            <li><a id="388800" onclick="setPrune('388800')" href="#!" class="active">3 months</a></li>
+            <li><a id="777600" onclick="setPrune('777600')" href="#!">6 months</a></li>
+            <li><a id="1555200" onclick="setPrune('1555200')" href="#!">A year</a></li>
+            <li><a id="Everything" onclick="setPrune('Everything')" href="#!">Keep all</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </header>
   
 
@@ -311,39 +448,40 @@ function copy(id) {
         <div id="example-table"></div>
       </div>
     </div>
-
-    <div class="row">
-      <div class="col pull-s2 s12">
-        <div class="btn-small btn-flat right load-btn">Load More</div>
-      </div>
-    </div>
   </div>
 
 
   <footer>
       <div class="row">
-        <div  class="col offset-l1 l6 s12">
-            <img style="margin-left:5%" width="180" src="assets/minilogoblacklandscape.svg">
-            <span style="font-family: manrope-bold" id="testnet">Testnet</span>          
+        <div class="col offset-l1 l6 s12">
+          <div class="row">
+            <div class="col s5">
+              <img style="margin-left:5%" width="180" src="assets/minilogoblacklandscape.svg">
+            </div>
+            <div style="" class="col pull-xl1 xl4 push-l1 l5 pull-m1 m4 s11 push-s1">
+              <p style="font-family:manrope-bold;color:#317AFF">Testnet</p>
+            </div>
+          </div>
+
         </div>
         <div class="col l2 s12">
 
         </div>
         <div id="socials-s" class="col l4 s12 hide-on-med-and-up socials">
-          <a id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
-          <a><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
-          <a><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
-          <a><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
-          <a><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
-          <a><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
+          <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
+          <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
+          <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
+          <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
+          <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
+          <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
         </div>
         <div id="socials-b" class="col l4 s12 hide-on-small-only socials">
-          <a id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
-          <a><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
-          <a><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
-          <a><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
-          <a><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
-          <a><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
+          <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
+          <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
+          <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
+          <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
+          <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
+          <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
         </div>
       </div>
   </footer>

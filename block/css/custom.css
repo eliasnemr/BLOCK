@@ -21,6 +21,56 @@
   .nav-wrapper {
     background-color: #91919D;
   }
+  #nav-wrapper {
+    width: 100%;
+    display: inline-flex;
+    flex-direction: row-reverse;
+    background-color: #91919D;
+    line-height: 60px;
+    padding-right:8.5%;
+  }
+  #nav-wrapper .row {
+    margin-bottom:0;
+  }
+  #nav-wrapper .switch {
+    display: inline-block;
+  }
+  #nav-wrapper .switch label {
+    color: #F0F0F9;
+  }
+  #nav-wrapper .prune-dd a:hover label {
+      color: #F0F0F9;
+      cursor: pointer;
+  }
+  #nav-wrapper .prune-dd a.active {
+      background-color: #317AFF !important;
+      color: #fff;
+  }
+  .switch label .lever::after {
+    height: 18px;
+    width: 18px;
+    background-color: #031D32;
+  }
+  .switch label .lever {
+    height: 12px;
+    background-color: #F0F0F9;
+  }
+  .dropdown-trigger label {
+    vertical-align: middle;
+    text-transform: none;
+    color: #F0F0F9;
+    font-family: manrope-bold;
+  }
+  .dropdown-trigger label i {
+    vertical-align: middle;
+    font-size: 2.5rem;
+  }
+  #dropdown1 li a{
+    color: #317AFF;
+  }
+  #dropdown1 {
+    width: 115px!important;
+  }
 
   .subtitle {
     font-weight: 80 !important;
@@ -76,8 +126,8 @@
     background-color: #031D32 !important;
   }
   #content {
-    padding-bottom: 200px;
-    padding-top: 135px;
+    padding-bottom: 220px;
+    padding-top: 250px;
     margin: 0 10% 0 10%;
   }
   #search-wrapper {
@@ -102,7 +152,7 @@
     font-size: 1.2rem;
     padding:0;
     margin:0;
-    margin-top: 2%;
+    margin-top: 0;
   }
   .load-btn {
     background-color: #F65130!important;
@@ -182,6 +232,14 @@
   .tabulator {
     font-size: 1.5rem !important;
   }
+  #example-table .tabulator-footer {
+    background-color: #F0F0F9 !important;
+  }
+  #example-table .tabulator-footer button {
+    border: none;
+    font-size: 1.0rem;
+    font-family:manrope-regular!important;
+  }
   #example-table {
     border: 0;
     border-top: 1px solid #BFBFCA;
@@ -190,12 +248,19 @@
     border: 0;
   }
   .tabulator .tabulator-row.tabulator-selectable:hover {
-    background-color: #f2f2f2 !important;
+    background-color: #FAFAFF !important;
     cursor: pointer;
   }
   #icon {
     width: 30vw;
     height: 20vh;
+  }
+
+  [role="columnheader"][tabulator-field="RELAYED"] * {
+    text-align: right;
+  }
+  [role="columnheader"][tabulator-field="TXNS"] * {
+    text-align: right;
   }
 
 
@@ -366,7 +431,6 @@
     font-size: 14px !important;
   }
 
-
   .switch label {
     font-family: manrope-bold;
     color: #fff;
@@ -379,10 +443,12 @@
     top:0;
     width: 100%;
   }
+  header #header {
+    background-color: #031D32;
+  }
   /** footer */
   footer {
     z-index: 10;
-    height: 200px;
     position: absolute;
     width:100%;
     bottom: 0;
