@@ -22,25 +22,29 @@
       var txpow_ = Minima.form.getParams("txpow");
 
       Minima.sql("SELECT * FROM txpowlist WHERE HASH = '"+txpow_+"'", function(txpow){
-      
-        if(txpow && txpow.response.rows.length > 0) {
-          setDetails(txpow);
+        console.log(txpow);
+        if(txpow.response.status && txpow.response.rows.length > 0) {
+          //setDetails(txpow);
+          loadDetails(txpow);
         } else {
           // alert div 
-          var no_blocks = document.createElement('div');
-          no_blocks.textContent = "Block "+txpow_+" not found!";
-          no_blocks.classList.add("row");
-          no_blocks.classList.add("center");
-          no_blocks.classList.add("alert");
+          var markup = '<div id="notfound" class="row center">'+
+                        '<div class="col s12">'+
+                          '<p>Something went wrong, details for block not found!<p>'+
+                        '</div>'+
+                       '</div>'+
+                       '<br>'+
+                       '<div id="notfound" class="row center">'+
+                        '<div class="col s12">'+
+                          '<a class="backBtn btn-small btn-flat">Back To Explorer<p>'+
+                        '</div>'+
+                       '</div>';
+          
+          $('#nav-wrapper').after(markup);
 
-          var content = document.getElementById("content");
-          content.setAttribute("style", "display:none");
+          $('#nav-wrapper').addClass('hide');
 
-          var nav = document.getElementById("direction");
-          nav.setAttribute("style", "display:none");
-
-          var content = document.querySelector('#content');
-          content.before(no_blocks);
+          $('#content').addClass('hide');
 
           setTimeout(function() {
             window.history.back(); 
@@ -103,8 +107,67 @@ function txnClicked(hash) {
   window.location.search = location.search.replace(/txpow=[^&$]*/i, 'txpow='+hash);
   return false;
 }
+
+function loadDetails(data) {
+
+    // if valid parse txpow
+    if (data) {
+      new Promise((resolve, reject) => {
+
+        data = JSON.parse(data.response.rows[0].TXPOW);
+        // txpow json data object
+        let txpow = {
+          id: data.txpowid, // TXPOW ID
+          blocknumber: data.header.block, // BLOCK NUMBER
+          isblock: data.isblock,
+          nonce: data.header.nonce,
+          superblock: data.superblock,
+          time: moment(data.header.timesecs*1000).format("DD MMMM YYYY HH:MM a"),
+          out_amount: data.body.txn.outputs.length,
+          inp_amount: data.body.txn.inputs.length,
+          txn_amount: data.body.txnlist.length,
+          size: data.size,
+          parent: data.header.superparents[0].parent,
+          type: (data.body.txn.inputs.length > 0 ? "Value Transfer" : "Pulse"),
+          isTokenCreator: (data.body.txn.tokengen ? "Yes" : "No"),
+          message: (data.body.txn.state.length>0 && data.body.txn.state[0].data == '01000100' ? data.body.txn.state[1].data : false) 
+        }
+        resolve(txpow);
+      }).then(txpow => {
+        console.log(txpow);
+
+
+        let markup = '<div id="blockDetails" class="row">'+
+                        '<div class="col offset-s1 s9">'+
+                          '<ul class="collection with-header">'+
+                            '<li class="collection-header"><h4>Block '+txpow.blocknumber+'</h4></li>'+
+                            '<li class="collection-item row"><div class="col m3 s12">TxPoW ID</div><a class="secondary-content col m9 s12">'+txpow.id+'</a></li>'+
+                            '<li class="collection-item row"><div class="col m3 s12">Timestamp</div><a class="secondary-content col m9 s12">'+txpow.time+'</a></li>'+
+                            '<li class="collection-item row"><div class="col m3 s12">Size</div><a class="secondary-content col m9 s12">'+txpow.size+'</a></li>'+
+                            '<li class="collection-item row"><div class="col m3 s12">Number of transactions</div><a class="secondary-content col m9 s12">'+txpow.txn_amount+'</a></li>'+
+                            '<li class="collection-item row"><div class="col m3 s12">Is a block?</div><a class="secondary-content col m9 s12">'+txpow.isblock+'</a></li>'+
+                            '<li class="collection-item row"><div class="col m3 s12">Nonce</div><a class="secondary-content col m9 s12">'+txpow.nonce+'</a></li>'+
+                            '<li class="collection-item row"><div class="col m3 s12">Superblock level</div><a class="secondary-content col m9 s12">'+txpow.superblock+'</a></li>'+
+                            '<li class="collection-item row"><div class="col m3 s12">Parent</div><a class="secondary-content col m9 s12">'+txpow.parent+'</a></li>'+
+                          '</ul>'+
+                        '</div>'+
+                      '</div>';
+        $('#nav-wrapper').after(markup);
+
+
+      });
+      
+      //$('#nav-blocks').html("Block "+txpow.blocknumber);
+
+    }
+
+
+
+
+
+}
+
 function setDetails(txpow) {
-  $(document).ready(function() {
   
   txpow = JSON.parse(txpow.response.rows[0].TXPOW);
 
@@ -233,9 +296,6 @@ function setDetails(txpow) {
     $('.collection').after("<div class='row center'><a class='btn-small pulse tooltipped' data-html='true' data-position='right' data-tooltip='TEST'>Pulse TXN<i class='material-icons tip'>show_chart</i><i class='material-icons tip2' style='display:none;'>multiline_chart</i></a><p class='tip' style='display:none;'>This transaction is a Pulse, so it has no inputs and outputs.</p></div>");
   
     }
-
-  });
-
 }
 </script>
 <script id="txn-template" type="text/x-jsrender">
@@ -378,30 +438,35 @@ function setDetails(txpow) {
 </script>
 
 <div id="wrapper">
-<header>
-  <nav class="menu navbar-fixed" role="navigation">
-    <div class="row">
-      <div style="padding-left:2.5%" class="col push-s1 s4">
-        <img style="width:120px" src="assets/block2.svg" alt="logo">
+  <header>
+    <nav class="menu navbar-fixed" role="navigation">
+      <div id="header" class="row">
+        <div style="padding-left:2.1%;padding-top:2.5%;padding-bottom:2%" class="col push-s1 s4">
+          <img style="width:200px;" src="assets/block2.svg" alt="logo">
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <nav class="menu navbar-fixed">
-    <div class="nav-wrapper">
-      <div class="row">
-        <div style="padding-left:2.5%" class="col offset-s1 s11">
+    <div style="flex-direction: row!important; padding-left: 10%;" id="nav-wrapper" class="row">
+      <div class="col">
+        <div class="nav-wrapper">
           <a href="index.html" class="breadcrumb explorer">Explorer</a>
           <a href="#!" class="breadcrumb explorer" id="nav-blocks"></a>
         </div>
       </div>
     </div>
-  </nav>
-</header>
+  </header>
   
-    <!-- Details BODY INFO -->
-    <div id="content">
-        <div class="row">
+  <!-- Details BODY INFO -->
+  <div id="content">
+
+
+
+
+
+
+
+        <!-- <div class="row">
           <div class="col s12">
             <i class='material-icons left info tooltipped' data-html='true' data-position='top' data-tooltip='Block number referencing at which height this block is currently in the Minima blockchain'>info</i>
             <div id="header"></div>
@@ -480,7 +545,7 @@ function setDetails(txpow) {
         </div>
       </li>
       </ul>
-  </div>
+  </div> -->
 </div>
 <!--  Scripts-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.7/jsrender.min.js"></script>

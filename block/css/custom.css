@@ -122,13 +122,15 @@
     padding-top: 1%;
     background-color: #031D32;
   }
-  footer {
-    background-color: #031D32 !important;
-  }
   #content {
-    padding-bottom: 220px;
-    padding-top: 250px;
-    margin: 0 10% 0 10%;
+    z-index: -1;
+    overflow: auto;
+    padding-bottom: 230px;
+    padding-top: 230px;
+    margin: 2% 10% 0 10%;
+  }
+  #example-table {
+    overflow: auto;
   }
   #search-wrapper {
     position: relative;
@@ -154,6 +156,12 @@
     margin:0;
     margin-top: 0;
   }
+  #notfound {
+    margin-top: 10%;
+  }
+  #notfound p {
+    text-align: center;
+  }
   .load-btn {
     background-color: #F65130!important;
     color: #fff;
@@ -170,6 +178,15 @@
       margin-left: 150px;
       margin-right: 150px;
     }
+    footer {
+      padding: 5% 5% 7% 5% !important;
+    }
+
+  }
+  @media only screen and (min-width: 993px) {
+    #socials-b  {
+      padding: 0;
+    }
   }
   @media only screen and (min-width: 1500px) {
     .table-section {
@@ -181,6 +198,7 @@
       margin-right: 150px;
     }
   }
+
   .tabulator-tableHolder {
     background-color: #F0F0F9 !important; 
     overflow:visible !important;
@@ -197,6 +215,7 @@
     background-color: #F0F0F9 !important;
     padding-bottom: 0.5%;
     padding-top: 0.5%;
+    border-bottom: none!important;
   }
   .tabulator-header .tabulator-col {
     border: 0 !important;
@@ -221,10 +240,12 @@
   .tabulator-row-even {
     background-color: #F0F0F9 !important;
     padding:0;
+    font-variant-numeric: tabular-nums;
   }
   .tabulator-row-odd {
     background-color: #F0F0F9 !important;
     padding:0;
+    font-variant-numeric: tabular-nums;
   }
   .tabulator-col-resize-handle {
    border: 0;
@@ -232,20 +253,30 @@
   .tabulator {
     font-size: 1.5rem !important;
   }
-  #example-table .tabulator-footer {
+  #search-title-col {
+    padding-top: 1%;
+  }
+  #example-table .tabulator-footer, #results-table .tabulator-footer {
     background-color: #F0F0F9 !important;
   }
-  #example-table .tabulator-footer button {
+  #example-table .tabulator-footer button, #results-table .tabulator-footer button {
     border: none;
     font-size: 1.0rem;
     font-family:manrope-regular!important;
   }
-  #example-table {
+  #example-table, #results-table {
     border: 0;
     border-top: 1px solid #BFBFCA;
   }
-  #results-table {
-    border: 0;
+  #results-table-col {
+    margin-top: 2%;
+  }
+  .backBtn {
+    background-color: rgb(246,81,48)!important;
+    color: #E9E9F2!important;
+    text-transform: none !important;
+    font-family: manrope-bold;
+
   }
   .tabulator .tabulator-row.tabulator-selectable:hover {
     background-color: #FAFAFF !important;
@@ -269,7 +300,10 @@
     position: relative;
   }
 
-  html,
+  html {
+    background-color: #031D32!important;
+  }
+  
   body {
     margin: 0;
     padding: 0;
@@ -318,12 +352,43 @@
   }
 
   /* Details.html */
-  .secondary-content {
-    color: #929396 !important;
-    word-break: break-all;
-    white-space: pre-line;
-    overflow-wrap: break-word;
-
+  #blockDetails.row .col.offset-s1 {
+    margin-left: 6.8%;
+  }
+  #blockDetails {
+    margin-left: 2%;
+  }
+  #blockDetails .collection {
+    border: none!important;
+  }
+  #blockDetails .collection .collection-header {
+    border:none!important;
+    border-bottom: 1px solid #9B9CA8!important;
+    background: none!important;
+  }
+  #blockDetails .collection .collection-header h4 {
+    font-size: 1.0rem;
+    font-family: manrope-bold;
+  }
+  #blockDetails .collection-item {
+    border:none!important;
+    background: none!important;
+    border-bottom: 2px solid #F1F1FA;
+  }
+  #blockDetails .collection-item div {
+    float: left;
+    position: relative;
+    font-family: manrope-bold;
+    padding-left: 0;
+  }
+  #blockDetails .collection-item a {
+    padding-left: 0;
+    text-align: left;
+    float: left;
+    overflow: hidden!important;
+    color: #0F0F0F;
+    text-overflow: ellipsis;
+    white-space: normal;
   }
   /* Transactions */
 
@@ -374,7 +439,7 @@
   }
 
   #results-table .tabulator-footer {
-    display: none;
+    display: block;
   }
   .details {
     display: none;
@@ -436,23 +501,37 @@
     color: #fff;
   }
 
+  html {
+    height: 100%;
+    background-color: transparent;
+    right:0;
+  }
   /** header */
   header {
+    background-color: #031D32 !important;
     z-index: 10;
     position: absolute;
     top:0;
+    height: 180px;
     width: 100%;
   }
   header #header {
     background-color: #031D32;
+    padding-top: 0!important;
   }
   /** footer */
   footer {
-    z-index: 10;
+    background-color: #031D32 !important;
+    z-index: 9999;
     position: absolute;
     width:100%;
     bottom: 0;
-    padding: 5%;
+    padding: 5% 5% 5% 5%;
+    padding-bottom:0;
+    height: 166px;
+  }
+  #footer-logo-col {
+    padding-left: 5%;
   }
   #testnet {
     padding-left: 5%;
@@ -473,3 +552,5 @@
   #lastsocial {
     padding-right: 0!important;
   }
+
+  

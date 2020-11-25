@@ -26,6 +26,7 @@
     // Create a tabulator instance, and refer it to the div canvas
     table = new Tabulator("#example-table", {
       pagination: "local",
+      layout:"fitDataTable",
       //maxHeight: "660",
       paginationSize: 10,
       layout: "fitColumns",
@@ -39,17 +40,16 @@
 
         {title: "Height", field: "HEIGHT", sorter: "number", responsive:0, headerSortStartingDir:"desc", width:'100', cssClass: "height-column"},
 
-        {title: "Hash", field: "HASH", responsive:2, align:'left', formatter:function(cell, formatterParams){
-          var hash = cell.getData();
-          // hash = hash.HASH.substring(0, 15) + "..." + hash.HASH.substring(hash.HASH.length-80, hash.HASH.length);
-          hash = hash.HASH.substring(0, 82)+"...";
+        {title: "Hash", field: "HASH", responsive:2, hozAlign:'left', formatter:function(cell, formatterParams){
+          var hash = cell.getData(); 
+          hash = hash.HASH;
           return hash;
         }},
         {title: "isblock", field:"isblock", visible: false},
 
         {title: "TXNS", field:"TXNS", width:70, headerHozAlign: "right", hozAlign:'right', widthShrink:3, responsive:3},
 
-        {title: "Relayed", field:"RELAYED", headerHozAlign: "right", hozAlign:'right', id:"relayed", width: 110, responsive:1, formatter:function(cell, formatterParams){
+        {title: "Relayed", field:"RELAYED", headerHozAlign: "right", hozAlign:'right', width: 110, responsive:1, formatter:function(cell, formatterParams){
             var time = cell.getData();
             time = moment(time.RELAYED*1000).format("HH:mm:ss");
             // time = new Date(parseInt(time.RELAYED*1000, 10)).toISOString();
@@ -393,7 +393,7 @@ function copy(id) {
   <header>
     <div class="menu navbar-fixed" role="navigation">
       <div id="header" class="row">
-        <div style="padding-left:2.5%;padding-top:2.5%;padding-bottom:2%" class="col push-s1 s4">
+        <div style="padding-left:2.1%;padding-top:2.5%;padding-bottom:2%" class="col push-s1 s4">
           <img style="width:200px;" src="assets/block2.svg" alt="logo">
         </div>
       </div>
@@ -429,7 +429,7 @@ function copy(id) {
   <!-- Body INFO -->
   <div id="content"> 
       <div class="row">
-        <div class="col s12">
+        <div id="search-title-col" class="col s12">
           <h5>Discover the heaviest leaf in the chain and traverse through.</h5>
         </div>
       </div>
@@ -453,27 +453,24 @@ function copy(id) {
 
   <footer>
       <div class="row">
-        <div class="col offset-l1 l6 s12">
+        <div style="padding-left: 4%" class="col l6 m3 s12">
           <div class="row">
-            <div class="col s5">
-              <img style="margin-left:5%" width="180" src="assets/minilogoblacklandscape.svg">
-            </div>
-            <div style="" class="col pull-xl1 xl4 push-l1 l5 pull-m1 m4 s11 push-s1">
-              <p style="font-family:manrope-bold;color:#317AFF">Testnet</p>
+            <div id="footer-logo-col" class="col s5">
+              <img width="180" src="assets/minilogoblacklandscape.svg">
             </div>
           </div>
 
         </div>
-        <div class="col l2 s12">
+        <div class="col l1 m1 s6">
 
         </div>
-        <div id="socials-s" class="col l4 s12 hide-on-med-and-up socials">
-          <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
-          <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
-          <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
-          <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
-          <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
-          <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
+        <div id="socials-s" class="col l5 m8 s12 hide-on-med-and-up socials">
+          <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:30px;" alt="website"></a>
+          <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:30px;" alt="github"></a>
+          <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:30px;" alt="telegram"></a>
+          <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:30px;" alt="medium"></a>
+          <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:30px;" alt="twitter"></a>
+          <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:30px;" alt="youtube"></a>
         </div>
         <div id="socials-b" class="col l4 s12 hide-on-small-only socials">
           <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>

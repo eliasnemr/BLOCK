@@ -8124,7 +8124,8 @@ body.dark .card {
   background-color: rgba(255, 255, 255, 0.2);
 }
 body.dark .btn, body.dark .btn-large, body.dark .btn-small {
-  background-color: #EE6F73;
+  background-color: rgb(246,81,48)!important;
+  color: #E9E9F2;
 }
 body.dark .divider {
   opacity: 0.2;
@@ -8167,10 +8168,9 @@ body.dark .tabulator-col-content {
 }
 body.dark .tabulator-header {
   background-color: #031D32 !important;
-  padding-bottom: 15px;
   padding-top: 5px;
 }
-body.dark #example-table .tabulator-footer {
+body.dark #example-table .tabulator-footer, body.dark #results-table .tabulator-footer {
   background-color: #031D32 !important;
 }
 body.dark .tabulator-cell {
@@ -8207,7 +8207,7 @@ body.dark .collection li h5 {
 body.dark .height-column {
   color: #2E75F4 !important;
 }
-body.dark #example-table .tabulator-footer button.active {
+body.dark #example-table .tabulator-footer button.active, body.dark #results-table .tabulator-footer button.active {
   background-color: #F65130!important;
   color: #fff;
 }
@@ -8229,10 +8229,6 @@ body.dark .secondary-content {
 }
 body.dark .txn {
   border: 1px solid #545557;
-}
-body.dark .btn-flat {
-  background-color: #34A69A !important;
-  color: #21272E !important;
 }
 body.dark .input {
   background-color: #21272E !important;

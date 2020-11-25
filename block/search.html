@@ -27,6 +27,13 @@
       
       $(document).ready(function(){
 
+        $(document).on('click', '#backBtn1', function(){
+
+          window.history.back();
+
+
+        });
+
           Minima.init(function(msg){
 
               if(msg.event == "connected") {
@@ -56,40 +63,53 @@
                       });
 
                       if(res.response.rows.length > 1){
+                        $('#goback-wrap').remove();
+                        $('#results-table').removeClass('hide');
                           $('#navbar-search').text("Showing "+res.response.rows.length+" results..");
                       } else if(res.response.rows.length == 1){
+                        $('#goback-wrap').remove();
+                        $('#results-table').removeClass('hide');
                           $('#navbar-search').text("Showing "+res.response.rows.length+" result..");
                       } else {
                           $('#navbar-search').text("No results found..");
+
+                          var markup = '<div id="goback-wrap" style="margin-top: 10%;" class="row center">'+
+                                          '<div class="col s12">'+
+                                            '<a id="backBtn1" class="btn-flat btn-small backBtn">Back To Explorer</a>'+
+                                          '</div>'+
+                                        '</div>';
+
+                          $('#results-table').after(markup);
+                          $('#results-table').addClass('hide');
                       }
 
+                      /**
                       if(res.response.rows.length <= 10) {
                         $('.load-btn').css("display", "none");
                       } 
-                      
+                      */
+
                       search_table = new Tabulator("#results-table", {
-                          initialSort:[
-                              {column: "HEIGHT", dir:"desc"}
-                          ],
-                          pagination: "local",
+                          pagination: "local",  
+                          layout:"fitDataTable",
                           //maxHeight: "660",
                           paginationSize: 10,
                           layout: "fitColumns",
                           resizableColumns: false,
-                          responsiveLayout: true,
+                          responsiveLayout: "hide",
                           headerSort: false,
                           index: "HEIGHT",
                           columns: [
                               {title:"txpow", field:"TXPOW", visible:false},
-                              {title: "Height", field: "HEIGHT", sorter: "number", width: '100', cssClass: "height-column"},
-                              {title: "Hash", field: "HASH", formatter:function(cell, formatterParams){
+                              {title: "Height", field: "HEIGHT", sorter: "number", responsive:0,  width: '100', cssClass: "height-column"},
+                              {title: "Hash", field: "HASH", hozAlign:"left", formatter:function(cell, formatterParams){
                                   var hash = cell.getData();
                                   hash = hash.HASH;
                                   return hash;
                               }},
                               {title: "isblock", field:"isblock", visible: false},
-                              {title: "TXNS", field:"TXNS", width:70, widthShrink:3, hozAlign: "center"},
-                              {title: "Relayed", field:"RELAYED", width: 110, hozAlign: "left", formatter:function(cell, formatterParams){
+                              {title: "TXNS", field:"TXNS", width:70, headerHozAlign: "right", hozAlign:'right', widthShrink:3, responsive:3},
+                              {title: "Relayed", field:"RELAYED", width: 110, headerHozAlign: "right", responsive:1, hozAlign:'right', formatter:function(cell, formatterParams){
                                   var time = cell.getData();
                                   time = moment(time.RELAYED*1000).format("HH:mm:ss");
                                   return time;
@@ -116,48 +136,47 @@
 <div id="wrapper">
 <header>
   <nav class="menu navbar-fixed" role="navigation">
-    <div class="row">
-      <div style="padding-left:2.5%" class="col push-s1 s4">
-        <img style="width:120px" src="assets/block2.svg" alt="logo">
+    <div id="header" class="row">
+      <div style="padding-left:2.5%;padding-top:2.5%;padding-bottom:2%" class="col push-s1 s4">
+        <img style="width:200px" src="assets/block2.svg" alt="logo">
       </div>
     </div>
   </nav>
 
-  <nav class="menu navbar-fixed">
-    <div class="nav-wrapper">
-      <div class="row">
-        <div style="padding-left:2.5%" class="col offset-s1 s11">
-          <a href="index.html" class="breadcrumb explorer">Explorer</a>
-          <a href="index.html" class="breadcrumb explorer" id="navbar-search"></a>
-        </div>
+  <div style="flex-direction: row!important; padding-left: 10%;" id="nav-wrapper" class="row">
+    <div class="col">
+      <div class="nav-wrapper">
+        <a href="index.html" class="breadcrumb explorer">Explorer</a>
+        <a href="index.html" class="breadcrumb explorer" id="navbar-search"></a>
       </div>
     </div>
-  </nav>
+  </div>
 </header>
 
   <div id="content">
     <div class="row">
-      <div class="col s12">
+      <div id="results-table-col" class="col s12" style="padding-right: 0">
         <div id="results-table"></div>
       </div>
     </div>
-    <!-- <div class="row">
-      <div class="col s12">
-        <a class="btn waves-effect waves-light load-btn load-more-btn">Load More</a>
-      </div>
-    </div> -->
   </div>
 
   <footer>
     <div class="row">
-      <div  class="col offset-l1 l6 s12">
-          <img style="margin-left:5%" width="180" src="assets/minilogoblacklandscape.svg">
-          <span style="font-family: manrope-bold" id="testnet">Testnet</span>          
+      <div style="padding-left: 4%" class="col l6 s12">
+        <div class="row">
+          <div class="col s5">
+            <img style="margin-left:5%" width="180" src="assets/minilogoblacklandscape.svg">
+          </div>
+          <div class="col pull-xl1 xl4 push-l1 l5 pull-m1 m4 s11 push-s1">
+            <p style="font-family:manrope-bold;color:#317AFF">Testnet</p>
+          </div>
+        </div>     
       </div>
       <div class="col l2 s12">
 
       </div>
-      <div id="socials-s" class="col l4 s12 hide-on-med-and-up socials">
+      <div style="padding-right: 10%;" id="socials-s" class="col l4 s12 hide-on-med-and-up socials">
         <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
         <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
         <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
@@ -165,7 +184,7 @@
         <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
         <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
       </div>
-      <div id="socials-b" class="col l4 s12 hide-on-small-only socials">
+      <div style="padding-right: 6%;" id="socials-b" class="col l4 s12 hide-on-small-only socials">
         <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
         <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
         <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
@@ -179,18 +198,26 @@
 
   <script>
     $(document).ready(function() {
-      // load more btn
-      $('.load-more-btn').on('click', function(){
-    
-          var size = $('#results-table').css('max-height').replace(/[^-\d\.]/g, '');
-    
-          size = parseInt(size, 10) + 264;
-    
-          document.getElementById("results-table").style.maxHeight = size+"px";
-    
-          search_table.redraw(true);    
-      });
 
+      // if dark mode is on - set toggle, add dark to body
+      Minima.file.load("userPreference.txt", function(res){
+        if(res.success){
+          var preference = JSON.parse(res.data);
+    
+          if(preference.mode == "dark"){
+            $('body').addClass("dark");
+            $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
+            $('#checkbox').prop('checked', true);
+    
+          } else if(preference.mode == "light"){
+            $('body').removeClass("dark");  
+            $('.body-icon').attr("src", "assets/blocklogo.svg");
+            $('#checkbox').prop('checked', false);
+    
+          }
+        }
+    
+      });
     });
   </script>
 
