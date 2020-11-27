@@ -10,6 +10,14 @@
   font-family: manrope-light; 
   src: url('./fonts/manrope-light.otf')
 }
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* make scrollbar transparent */
+}
+
+.backdrop {
+  opacity: 0.2;
+}
 
 /** Mini Custom styling */
   .explorer {
@@ -26,8 +34,9 @@
     display: inline-flex;
     flex-direction: row-reverse;
     background-color: #91919D;
-    line-height: 60px;
-    padding-right:8.5%;
+    line-height: 35px;
+    padding-right:8%;
+    padding-bottom:0!important;
   }
   #nav-wrapper .row {
     margin-bottom:0;
@@ -65,9 +74,13 @@
     vertical-align: middle;
     font-size: 2.5rem;
   }
-  #dropdown1 li a{
+  #dropdown1 li a {
     color: #317AFF;
   }
+  #dropdown1 li:hover a {
+    color: #000;
+  }
+
   #dropdown1 {
     width: 115px!important;
   }
@@ -97,7 +110,6 @@
   #header {
     font-weight: 300;
     font-size: 44px;
-    padding: 5px;
   }
   #txn-header {
     font-weight: 300;
@@ -119,15 +131,14 @@
   }
 
   nav {
-    padding-top: 1%;
     background-color: #031D32;
   }
   #content {
     z-index: -1;
     overflow: auto;
-    padding-bottom: 230px;
-    padding-top: 230px;
-    margin: 2% 10% 0 10%;
+    padding-bottom: 200px;
+    padding-top: 200px;
+    margin: 0 10% 0 10%;
   }
   #example-table {
     overflow: auto;
@@ -169,6 +180,7 @@
     text-transform: none;
   }
 
+
   @media only screen and (min-width: 1200px) {
     .table-section {
       margin-left: 150px;
@@ -182,6 +194,11 @@
       padding: 5% 5% 7% 5% !important;
     }
 
+  }
+  @media only screen and (min-width: 1300px) {
+    #content {
+      padding-top: 225px;
+    }
   }
   @media only screen and (min-width: 993px) {
     #socials-b  {
@@ -299,10 +316,6 @@
     min-height: 100%;
     position: relative;
   }
-
-  html {
-    background-color: #031D32!important;
-  }
   
   body {
     margin: 0;
@@ -352,36 +365,38 @@
   }
 
   /* Details.html */
-  #blockDetails.row .col.offset-s1 {
-    margin-left: 6.8%;
+  #blockDetails, #inputDetails, #outputDetails, #txnlistDetails {
+    margin-left: -1.5%;
+    margin-bottom: 2%;
   }
-  #blockDetails {
-    margin-left: 2%;
+  .outputWrapper, .inputWrapper, .txnlistWrapper {
+    border-bottom: 0.5px solid #9B9CA8!important;
   }
-  #blockDetails .collection {
+  #blockDetails .collection, #inputDetails .collection, #outputDetails .collection, #txnlistDetails .collection {
     border: none!important;
   }
-  #blockDetails .collection .collection-header {
+  #blockDetails .collection .collection-header, #inputDetails .collection .collection-header, #outputDetails .collection .collection-header, #txnlistDetails .collection .collection-header {
     border:none!important;
-    border-bottom: 1px solid #9B9CA8!important;
+    border-bottom: 2px solid #9B9CA8!important;
     background: none!important;
   }
-  #blockDetails .collection .collection-header h4 {
+  #blockDetails .collection .collection-header h4, #inputDetails .collection .collection-header h4, #outputDetails .collection .collection-header h4, #txnlistDetails .collection .collection-header h4  {
     font-size: 1.0rem;
     font-family: manrope-bold;
+    color: #000 !important;
   }
-  #blockDetails .collection-item {
+  #blockDetails .collection-item, #inputDetails .collection-item, #outputDetails .collection-item, #txnlistDetails .collection-item  {
     border:none!important;
     background: none!important;
     border-bottom: 2px solid #F1F1FA;
   }
-  #blockDetails .collection-item div {
+  #blockDetails .collection-item div, #inputDetails .collection-item div, #outputDetails .collection-item div, #txnlistDetails .collection-item div {
     float: left;
     position: relative;
     font-family: manrope-bold;
     padding-left: 0;
   }
-  #blockDetails .collection-item a {
+  #blockDetails .collection-item a, #inputDetails .collection-item a, #outputDetails .collection-item a, #txnlistDetails .collection-item a {
     padding-left: 0;
     text-align: left;
     float: left;
@@ -389,6 +404,13 @@
     color: #0F0F0F;
     text-overflow: ellipsis;
     white-space: normal;
+  }
+  #outputWrapper, #inputWrapper, #txnlistWrapper {
+    border-bottom: 1px solid #9B9CA8!important;
+  }
+  .link {
+    color: #317AFF!important;
+    cursor: pointer;
   }
   /* Transactions */
 
@@ -434,10 +456,7 @@
     padding-bottom: 40px;
     
   }
-  footer .row {
-    margin-bottom: 0;
-  }
-
+  
   #results-table .tabulator-footer {
     display: block;
   }
@@ -476,7 +495,7 @@
   }
   .toast {
     background-color: #f2f2f2 !important;
-    color: #929396 !important;
+    color: #031D32 !important;
   }
 
   .padding {
@@ -503,7 +522,6 @@
 
   html {
     height: 100%;
-    background-color: transparent;
     right:0;
   }
   /** header */
@@ -512,12 +530,57 @@
     z-index: 10;
     position: absolute;
     top:0;
-    height: 180px;
+    height: 133px;
     width: 100%;
   }
   header #header {
     background-color: #031D32;
     padding-top: 0!important;
+  }
+  header #header img {
+    margin-right: 5%;
+  }
+  header #brand {
+    padding-left: 2.1%;
+    padding-top: 2.5%;
+    padding-bottom:2%;
+    display:flex;
+    flex-direction: row;;
+  }
+  header #title p {
+    font-size: 1.0rem;
+    color: #fff;
+    font-family: manrope-bold;
+  }
+  header #title {
+    padding-left: 3%;
+  }
+  header #titleR {
+    padding-right: 10%;
+    padding-top: 3.5vh;
+    padding-bottom:2%;
+    display: flex;
+    flex-direction: row;
+    font-size: 1.2rem;
+    white-space: nowrap;
+  }
+  header #titleR p {
+    color: #317AFF!important;
+    text-align: right;
+    line-height: 1;
+    margin-right: 5%;
+  }
+  header #titleR img {
+    width: 33px;
+    height:auto;
+  }
+  header #titleR.right {
+    color:#317AFF!important;
+    font-size: 1.0rem!important;
+  }
+  header #titleR.right span {
+    color: #fff;
+    font-size: 0.8rem!important;
   }
   /** footer */
   footer {

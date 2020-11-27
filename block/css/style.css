@@ -8114,7 +8114,7 @@ body.dark #dropdown1 li a{
   background-color: #031D32;
 }
 body.dark .material-tooltip {
-  background-color: #91919D;
+  background-color: #1879FF;
   color: #F0F0F9;
 }
 body.dark .switch label .lever {
@@ -8225,7 +8225,7 @@ body.dark .tabulator-footer {
   background-color: #212326 !important;
 }
 body.dark .secondary-content {
-  color: #34A69A !important;
+  color: #34A69A;
 }
 body.dark .txn {
   border: 1px solid #545557;
@@ -8256,7 +8256,7 @@ body.dark #txn-header {
   color: rgb(52,166,154);
 }
 body.dark .toast {
-  background-color: #91919D !important;
+  background-color: #1879FF !important;
   color: #F0F0F9 !important;
 }
 body.dark .dropdown-content .disabled span {
@@ -8269,5 +8269,18 @@ body.dark #tool {
   filter: invert(27%) sepia(51%) saturate(2000%) hue-rotate(346deg) brightness(104%) contrast(97%);
 }
 
+body.dark #blockDetails .collection-item a, body.dark #inputDetails .collection-item a, body.dark #outputDetails .collection-item a, body.dark  #txnlistDetails .collection-item a {
+  color: #fff;
+}
+body.dark #blockDetails .collection-header h4, body.dark  #inputDetails .collection-header h4, body.dark  #outputDetails .collection-header h4,  body.dark #txnlistDetails .collection-header h4 {
+  color: #F65130!important;
+}
+body.dark .link {
+  color: #317AFF !important;
+}
+body.dark #dropdown1 li:hover a {
+  background-color: rgb(145,145,157)!important;
+  color: #fff;
+}
 
 /*# sourceMappingURL=style.css.map */

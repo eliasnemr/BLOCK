@@ -31,7 +31,6 @@
 
           window.history.back();
 
-
         });
 
           Minima.init(function(msg){
@@ -45,10 +44,8 @@
                 
                       if(preference.mode == "dark"){
                         $('body').addClass("dark");
-                        $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
                       } else if(preference.mode == "light"){
                         $('body').removeClass("dark");  
-                        $('.body-icon').attr("src", "assets/blocklogo.svg");
                       }
                     }
                 
@@ -62,32 +59,34 @@
                           search.push(el);
                       });
 
-                      if(res.response.rows.length > 1){
-                        $('#goback-wrap').remove();
-                        $('#results-table').removeClass('hide');
-                          $('#navbar-search').text("Showing "+res.response.rows.length+" results..");
-                      } else if(res.response.rows.length == 1){
-                        $('#goback-wrap').remove();
-                        $('#results-table').removeClass('hide');
-                          $('#navbar-search').text("Showing "+res.response.rows.length+" result..");
+                      if(res.response.status) {
+                        if(res.response.rows.length > 1){
+                          $('#goback-wrap').remove();
+                          $('#results-table').removeClass('hide');
+                            $('#navbar-search').text("Showing "+res.response.rows.length+" results..");
+                        } else if(res.response.rows.length == 1){
+                          $('#goback-wrap').remove();
+                          $('#results-table').removeClass('hide');
+                            $('#navbar-search').text("Showing "+res.response.rows.length+" result..");
+                        }
                       } else {
-                          $('#navbar-search').text("No results found..");
+                        $('#navbar-search').text("No results found..");
 
-                          var markup = '<div id="goback-wrap" style="margin-top: 10%;" class="row center">'+
-                                          '<div class="col s12">'+
-                                            '<a id="backBtn1" class="btn-flat btn-small backBtn">Back To Explorer</a>'+
-                                          '</div>'+
-                                        '</div>';
+                        var markup = '<div id="notfound" class="row center">'+ 
+                                      '<div class="col s12">'+
+                                        '<p>No results found for this query!<p>'+
+                                      '</div>'+
+                                    '</div>'+
+                                    '<br>'+
+                                    '<div id="notfound" class="row center">'+
+                                      '<div class="col s12">'+
+                                        '<a id="backBtn1" class="backBtn btn-small btn-flat">Back To Explorer<p>'+
+                                      '</div>'+
+                                    '</div>';
 
-                          $('#results-table').after(markup);
-                          $('#results-table').addClass('hide');
+                        $('#content').append(markup);
+                        $('#results-table-col').addClass('hide');
                       }
-
-                      /**
-                      if(res.response.rows.length <= 10) {
-                        $('.load-btn').css("display", "none");
-                      } 
-                      */
 
                       search_table = new Tabulator("#results-table", {
                           pagination: "local",  
@@ -135,13 +134,21 @@
 </script>
 <div id="wrapper">
 <header>
-  <nav class="menu navbar-fixed" role="navigation">
+  <div class="menu navbar-fixed" role="navigation">
     <div id="header" class="row">
-      <div style="padding-left:2.5%;padding-top:2.5%;padding-bottom:2%" class="col push-s1 s4">
-        <img style="width:200px" src="assets/block2.svg" alt="logo">
+      <div id="brand" class="col push-s1 s4">
+        <img style="width:200px;" src="assets/block2.svg" alt="logo">
+        <div id="title">
+          <p>The Minima <br> Blockchain Explorer</p>
+        </div>
+      </div>
+
+      <div id="titleR" class="right hide-on-small-and-down">
+        <p>Testnet <br> <span>Powered by Minima</span></p>
+        <img src="assets/minimaMark.svg" alt="logo">
       </div>
     </div>
-  </nav>
+  </div>
 
   <div style="flex-direction: row!important; padding-left: 10%;" id="nav-wrapper" class="row">
     <div class="col">
@@ -196,33 +203,8 @@
 </footer>
 </div>
 
-  <script>
-    $(document).ready(function() {
-
-      // if dark mode is on - set toggle, add dark to body
-      Minima.file.load("userPreference.txt", function(res){
-        if(res.success){
-          var preference = JSON.parse(res.data);
-    
-          if(preference.mode == "dark"){
-            $('body').addClass("dark");
-            $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
-            $('#checkbox').prop('checked', true);
-    
-          } else if(preference.mode == "light"){
-            $('body').removeClass("dark");  
-            $('.body-icon').attr("src", "assets/blocklogo.svg");
-            $('#checkbox').prop('checked', false);
-    
-          }
-        }
-    
-      });
-    });
-  </script>
 
   <script src="js/bin/materialize.js"></script>
-  <script src="js/Minima/functions/functions.js"></script>
 
   </body>
 </html>

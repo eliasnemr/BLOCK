@@ -17,57 +17,56 @@
 
     $(document).ready(function(){
 
-      Minima.init(function(msg){});
+      Minima.init(function(msg){
+
+        if(msg.event == "connected") {
+          // dark mode
+          Minima.file.load("userPreference.txt", function(res){
+          if(res.success){
+            var preference = JSON.parse(res.data);
+    
+            if(preference.mode == "dark"){
+              $('body').addClass("dark");
+            } else if(preference.mode == "light"){
+              $('body').removeClass("dark");  
+            }
+        }
+      });
+        }
+
+      });
 
       var txpow_ = Minima.form.getParams("txpow");
 
       Minima.sql("SELECT * FROM txpowlist WHERE HASH = '"+txpow_+"'", function(txpow){
-        console.log(txpow);
+        
         if(txpow.response.status && txpow.response.rows.length > 0) {
           //setDetails(txpow);
           loadDetails(txpow);
-        } else {
+        } else if(!txpow.response.status) {
           // alert div 
-          var markup = '<div id="notfound" class="row center">'+
+          var markup = '<div id="notfound" class="row center">'+ 
                         '<div class="col s12">'+
-                          '<p>Something went wrong, details for block not found!<p>'+
+                          '<p>Something went wrong, details for this block not found!<p>'+
                         '</div>'+
                        '</div>'+
                        '<br>'+
                        '<div id="notfound" class="row center">'+
                         '<div class="col s12">'+
-                          '<a class="backBtn btn-small btn-flat">Back To Explorer<p>'+
+                          '<a id="backBtn" class="backBtn btn-small btn-flat">Back To Explorer<p>'+
                         '</div>'+
                        '</div>';
           
-          $('#nav-wrapper').after(markup);
+          $('#content').append(markup);
 
           $('#nav-wrapper').addClass('hide');
 
-          $('#content').addClass('hide');
-
           setTimeout(function() {
-            window.history.back(); 
+            //window.history.back(); 
           }, 3000);
 
         }
 
-      });
-      
-      // dark mode
-      Minima.file.load("userPreference.txt", function(res){
-        if(res.success){
-          var preference = JSON.parse(res.data);
-    
-          if(preference.mode == "dark"){
-            $('body').addClass("dark");
-            $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
-          } else if(preference.mode == "light"){
-            $('body').removeClass("dark");  
-            $('.body-icon').attr("src", "assets/blocklogo.svg");
-          }
-        }
-    
       });
 
       // tool info display
@@ -77,6 +76,10 @@
       $("#elias").on("click", function(){
         window.open('https://github.com/eliasnemr', '_blank'); 
       });
+
+      $(document).on('click', '#backBtn', function(){
+        window.history.back();
+      })
 
       $(document).on("click", ".pulse", function(){
         $('.tip').toggle("slide");
@@ -95,13 +98,9 @@
 
       });
 });
-function parentClicked() {
-  var parent = document.getElementById("parent").textContent;
-  var blk = $('#height').text();
-
+function parentClicked(parent) {
   window.location.search = location.search.replace(/txpow=[^&$]*/i, 'txpow='+parent);
   return false;
-
 }
 function txnClicked(hash) {
   window.location.search = location.search.replace(/txpow=[^&$]*/i, 'txpow='+hash);
@@ -115,6 +114,7 @@ function loadDetails(data) {
       new Promise((resolve, reject) => {
 
         data = JSON.parse(data.response.rows[0].TXPOW);
+        console.log(data);
         // txpow json data object
         let txpow = {
           id: data.txpowid, // TXPOW ID
@@ -123,329 +123,161 @@ function loadDetails(data) {
           nonce: data.header.nonce,
           superblock: data.superblock,
           time: moment(data.header.timesecs*1000).format("DD MMMM YYYY HH:MM a"),
-          out_amount: data.body.txn.outputs.length,
-          inp_amount: data.body.txn.inputs.length,
-          txn_amount: data.body.txnlist.length,
+          inputs: data.body.txn.inputs,
+          outputs: data.body.txn.outputs,
+          txnlist: data.body.txnlist,
           size: data.size,
           parent: data.header.superparents[0].parent,
           type: (data.body.txn.inputs.length > 0 ? "Value Transfer" : "Pulse"),
-          isTokenCreator: (data.body.txn.tokengen ? "Yes" : "No"),
-          message: (data.body.txn.state.length>0 && data.body.txn.state[0].data == '01000100' ? data.body.txn.state[1].data : false) 
+          isTokenCreator: (data.body.txn.tokengen ? "Yes" : ""),
+          tokenName: (data.body.txn.tokengen ? data.body.txn.tokengen.token : ""),
+          message: (data.body.txn.state.length>0 && data.body.txn.state[0].data == '01000100' ? data.body.txn.state[1].data : "") 
         }
         resolve(txpow);
       }).then(txpow => {
-        console.log(txpow);
+        
+        $('#nav-blocks').text('Block '+txpow.blocknumber);
 
-
+        // add details
         let markup = '<div id="blockDetails" class="row">'+
-                        '<div class="col offset-s1 s9">'+
+                        '<div class="col s12">'+
                           '<ul class="collection with-header">'+
-                            '<li class="collection-header"><h4>Block '+txpow.blocknumber+'</h4></li>'+
+                            '<li class="collection-header"><h4>Details</h4></li>'+
                             '<li class="collection-item row"><div class="col m3 s12">TxPoW ID</div><a class="secondary-content col m9 s12">'+txpow.id+'</a></li>'+
                             '<li class="collection-item row"><div class="col m3 s12">Timestamp</div><a class="secondary-content col m9 s12">'+txpow.time+'</a></li>'+
                             '<li class="collection-item row"><div class="col m3 s12">Size</div><a class="secondary-content col m9 s12">'+txpow.size+'</a></li>'+
-                            '<li class="collection-item row"><div class="col m3 s12">Number of transactions</div><a class="secondary-content col m9 s12">'+txpow.txn_amount+'</a></li>'+
+                            '<li class="collection-item row"><div class="col m3 s12">Number of transactions</div><a class="secondary-content col m9 s12">'+txpow.txnlist.length+'</a></li>'+
                             '<li class="collection-item row"><div class="col m3 s12">Is a block?</div><a class="secondary-content col m9 s12">'+txpow.isblock+'</a></li>'+
                             '<li class="collection-item row"><div class="col m3 s12">Nonce</div><a class="secondary-content col m9 s12">'+txpow.nonce+'</a></li>'+
                             '<li class="collection-item row"><div class="col m3 s12">Superblock level</div><a class="secondary-content col m9 s12">'+txpow.superblock+'</a></li>'+
-                            '<li class="collection-item row"><div class="col m3 s12">Parent</div><a class="secondary-content col m9 s12">'+txpow.parent+'</a></li>'+
+                            '<li id="type" class="collection-item row"><div class="col m3 s12">Type</div><a class="secondary-content col m9 s12">'+txpow.type+'</a></li>'+
+                            '<li id="tokengen" class="collection-item row hide"><div class="col m3 s12">Token name</div><a class="secondary-content col m9 s12">'+txpow.tokenName+'</a></li>'+
+                            '<li id="typec" class="collection-item row hide"><div class="col m3 s12">Type</div><a class="secondary-content col m9 s12">Token Creator</a></li>'+
+                            '<li class="collection-item row"><div class="col m3 s12">Parent</div><a onclick="parentClicked(\''+txpow.parent+'\')" class="secondary-content link col m9 s12">'+txpow.parent+'</a></li>'+
                           '</ul>'+
                         '</div>'+
                       '</div>';
-        $('#nav-wrapper').after(markup);
 
+        $('#content').append(markup);
 
+        if(txpow.message.length > 0) {
+          console.log("Mesage says + "+txpow.message);
+          let markup = '<li id="message" class="collection-item row"><div class="col m3 s12">Message</div><a class="secondary-content col m9 s12">'+txpow.message+'</a></li>';
+          console.log(markup);
+          $('#blockDetails ul').append(markup);
+        }
+
+        if(txpow.isTokenCreator.length > 0) {
+          $('#blockDetails #type').addClass('hide');
+          $('#blockDetails #tokengen').removeClass('hide');
+          $('#blockDetails #typec').removeClass('hide');
+
+        }
+        
+        // is this a transaction?
+        if(txpow.inputs.length > 0) {
+          let inputs = "";let outputs = "";
+          for(var i=0; i < txpow.inputs.length; i++) {
+            inputs += 
+            '<div class="inputWrapper">'+
+            '<li class="collection-item row"><div class="col m3 s12">Index </div><a class="secondary-content col m9 s12">'+i+'</a></li>'+
+            '<li class="collection-item row"><div class="col m3 s12">Coin ID </div><a class="secondary-content col m9 s12">'+txpow.inputs[i].coinid+'</a></li>'+
+            '<li class="collection-item row"><div class="col m3 s12">Address </div><a class="secondary-content col m9 s12">'+txpow.inputs[i].address+'</a></li>'+
+            '<li class="collection-item row"><div class="col m3 s12">Mx Address </div><a class="secondary-content col m9 s12">'+txpow.inputs[i].mxaddress+'</a></li>'+
+            '<li class="collection-item row"><div class="col m3 s12">Token ID </div><a class="secondary-content col m9 s12">'+txpow.inputs[i].tokenid+'</a></li>'+
+            '<li class="collection-item row"><div class="col m3 s12">Value </div><a class="secondary-content col m9 s12">'+txpow.inputs[i].amount+'</a></li>'+
+            '</div>';
+
+          }
+          for(var i=0; i < txpow.outputs.length; i++) {
+            outputs += 
+            '<div class="outputWrapper">'+
+            '<li class="collection-item row"><div class="col m3 s12">Index </div><a class="secondary-content col m9 s12">'+i+'</a></li>'+
+            '<li class="collection-item row"><div class="col m3 s12">Coin ID </div><a class="secondary-content col m9 s12">'+txpow.outputs[i].coinid+'</a></li>'+
+            '<li class="collection-item row"><div class="col m3 s12">Address </div><a class="secondary-content col m9 s12">'+txpow.outputs[i].address+'</a></li>'+
+            '<li class="collection-item row"><div class="col m3 s12">Mx Address </div><a class="secondary-content col m9 s12">'+txpow.outputs[i].mxaddress+'</a></li>'+
+            '<li class="collection-item row"><div class="col m3 s12">Token ID </div><a class="secondary-content col m9 s12">'+txpow.outputs[i].tokenid+'</a></li>'+
+            '<li class="collection-item row"><div class="col m3 s12">Value </div><a class="secondary-content col m9 s12">'+txpow.outputs[i].amount+'</a></li>'+
+            '</div>';
+          }
+          // add the transaction inputs/outputs
+          let markup_i = '<div id="inputDetails" class="row">'+
+                          '<div class="col s12">'+
+                            '<ul class="collection with-header">'+
+                              '<li class="collection-header"><h4>Inputs</h4></li>'+
+                              inputs+
+                            '</ul>'+
+                          '</div>'
+                        '</div>';
+          let markup_o = '<div id="outputDetails" class="row">'+
+                            '<div class="col s12">'+
+                              '<ul class="collection with-header">'+
+                                '<li class="collection-header"><h4>Outputs</h4></li>'+
+                                outputs+
+                              '</ul>'+
+                            '</div>'
+                          '</div>';
+
+          $('#blockDetails').after(markup_i);    
+          $('#inputDetails').after(markup_o);              
+
+        }
+
+        // does this TxPoW carry other TxPoWs?
+        if(txpow.txnlist.length > 0) {
+          let txnlist = "";
+
+          for (var i=0; i < txpow.txnlist.length; i++) {
+
+            txnlist+= 
+            '<div class="txnlistWrapper">'+
+              '<li class="collection-item row"><div class="col m3 s12">Transaction #'+i+'</div><a onclick="txnClicked(\''+txpow.txnlist[i]+'\')" class="secondary-content link col m9 s12">'+txpow.txnlist[i]+'</a></li>'+
+            '</div>';
+
+          }
+
+          let markup_l = '<div id="txnlistDetails" class="row">'+
+                            '<div class="col s12">'+
+                              '<ul class="collection with-header">'+
+                                '<li class="collection-header"><h4>Transaction list</h4></li>'+
+                                txnlist+
+                              '</ul>'+
+                            '</div>'+
+                          '</div>';
+
+          if ($('#outputDetails').length) {
+
+            $('#outputDetails').after(markup_l);
+
+          } else {
+            $('#blockDetails').after(markup_l);
+          }
+        }
       });
-      
-      //$('#nav-blocks').html("Block "+txpow.blocknumber);
-
-    }
-
-
-
-
-
-}
-
-function setDetails(txpow) {
-  
-  txpow = JSON.parse(txpow.response.rows[0].TXPOW);
-
-  $("#hash").html(txpow.txpowid);
-  $("#nav-blocks").html("Block "+txpow.header.block);
-  $("#height").html(txpow.header.block);
-
-  if(txpow.isblock == true){
-
-      $("#isblock").html("Yes");
-
-  } else {
-
-      $("#isblock").html("No");
-
-  }
-
-  $("#nonce").html(txpow.header.nonce);
-  $("#superparents-amnt").html(txpow.superblock);
-  var time = moment(txpow.header.timesecs*1000).format("DD MMMM YYYY HH:MM a");
-  $("#timestamp").html(time);
-  $("#header").html("Block "+ txpow.header.block);
-  $("#outputs").html(txpow.body.txn.outputs.length);
-  $("#inputs").html(txpow.body.txn.inputs.length);
-  $("#txns").html(txpow.body.txnlist.length);
-  $("#size").html(txpow.size);
-  $("#parent").html(txpow.header.superparents[0].parent);
-  if(txpow.body.txn.inputs.length > 0) {
-    $("#_type").css("display", "block");
-    $("#type").html("Value transfer");
-  }
-  if(txpow.body.txn.tokengen) {
-    $("#token").html(txpow.body.txn.tokengen.token);
-    $("#_token").css("display", "block");
-    $("#type").html("Token creation");
-  } 
-  var state = txpow.body.txn.state;
-  if(state.length > 0 && state[0].data == '01000100') {
-    $('#msg').css("display", "block");
-    $('#message').html(state[1].data);
-  }
-  if(txpow.body.txn.inputs.length > 0){
-
-    var tmpl = $.templates('#txn-template');
-
-    var inputs = []; var outputs = []; var input_index; var output_index; var txn_index;
-    var scripts = [];
-    // get TXN input scripts
-    $.each(txpow.body.witness.scripts, function(i, el){
-      scripts.push({script_index: i, script: el.script, data: el.proof.data, hashbits: el.proof.hashbits, proofchain: el.proof.proofchain, chainsha: el.proof.chainsha, finalhash: el.proof.finalhash });
-    });
-    // get TXN inputs
-    $.each(txpow.body.txn.inputs, function(i, el){
-      inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount, inTokenID: el.tokenid, inFloating: el.floating, inRemainder: el.remainder, scripts: scripts});
-    });
-    // get TXN outputs
-    $.each(txpow.body.txn.outputs, function(i, el){
-      outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount, outTokenID: el.tokenid, outFloating: el.floating, outRemainder: el.remainder});
-    });
-
-    
-    // create txn
-    var txn = { txn_index: 0, inputs: inputs, outputs: outputs };
-
-    // render
-    var html = tmpl.render(txn);
-
-    $('.collection').after(html);
-
-  } else if(txpow.body.txn.inputs.length > 0 && txpow.body.txnlist.length > 0){
-
-    var tmpl = $.templates('#txn-template');
-    var tmpl_txnlist = $.templates('#txnlist-template');
-
-    var inputs = []; var outputs = [];var txnlist = []; var input_index; var output_index; var txn_index;
-    var scripts = [];
-    // get TXN input scripts
-    $.each(txpow.body.witness.scripts, function(i, el){
-      scripts.push({script_index: i, script: el.script, data: el.proof.data, hashbits: el.proof.hashbits, proofchain: el.proof.proofchain, chainsha: el.proof.chainsha, finalhash: el.proof.finalhash });
-    });
-    // get TXN inputs
-    $.each(txpow.body.txn.inputs, function(i, el){
-      inputs.push({input_index: i, inAddress: el.address, inAmount: el.amount, inTokenID: el.tokenid, inFloating: el.floating, inRemainder: el.remainder, scripts: scripts});
-    });
-    // get TXN outputs
-    $.each(txpow.body.txn.outputs, function(i, el){
-      outputs.push({output_index: i, outAddress: el.address, outAmount: el.amount, outTokenID: el.tokenid, outFloating: el.floating, outRemainder: el.remainder});
-    });
-    $.each(txpow.body.txnlist, function(i, el){
-      txnlist.push({index:i, hash: el});
-    });
-
-    // create txn
-    var txn = { txn_index: 0, inputs: inputs, outputs: outputs };
-    // render
-    var html = tmpl.render(txn);
-
-    // create txnlist 
-    var txnlist = { txnlist: txnlist};
-
-    var html_txnlist = tmpl_txnlist.render(txnlist);
-
-    $('.collection').after(html);
-    $('.collection').after(html_txnlist);
-
-    
-  } else if(!txpow.body.txn.inputs.length > 0 && txpow.body.txnlist.length > 0){
-    var txnlist = [];
-    var tmpl_txnlist = $.templates('#txnlist-template');
-
-    $.each(txpow.body.txnlist, function(i, el){
-      txnlist.push({index:i, hash: el});
-    });
-
-    localStorage.setItem("txnlist", JSON.stringify(txnlist));
-
-    // create txnlist 
-    var txnlist = { txnlist: txnlist };
-    // render inside the template
-    var html_txnlist = tmpl_txnlist.render(txnlist);
-    // add it to html
-    $('.collection').after(html_txnlist);
-  
-  } else {
-
-    $('.collection').after("<div class='row center'><a class='btn-small pulse tooltipped' data-html='true' data-position='right' data-tooltip='TEST'>Pulse TXN<i class='material-icons tip'>show_chart</i><i class='material-icons tip2' style='display:none;'>multiline_chart</i></a><p class='tip' style='display:none;'>This transaction is a Pulse, so it has no inputs and outputs.</p></div>");
-  
     }
 }
-</script>
-<script id="txn-template" type="text/x-jsrender">
-  <!-- TRANSACTIONS -->
-  <div class="row txn" id="txn-template">
-
-    <div class="col s8">
-      <p>TXN #{{:txn_index}}</p>
-    </div>
-
-    <div class="col s3" >
-      <p>
-        <a class="waves-effect waves-light btn-flat details-btn">Details <i class=" material-icons right details-icon " style="font-size: 15px;">add</i></a>
-      </p>
-    </div>
-
-
-    <div class="container txn-container">
-      <div class="row">
-
-      {{for inputs}}
-        <div class="col s5 input">
-          <div class="row">
-            <div class="col s1">
-              <p id="index">#{{:input_index}}</p>
-            </div>
-            <div class="col s9">
-              <p class="address">{{:inAddress}}</p>
-            </div>
-            <div class="col s2 amnt">
-              <p>{{:inAmount}}</p>
-            </div>
-          </div>
-          <div class="row details">
-            <ul class="collection" style="line-style: none;">
-              <li class="collection-item">
-              <div>Token ID
-                <a href="#!" class="secondary-content">{{:inTokenID}}</a>
-              </div>
-              </li>
-              <li class="collection-item">
-                <div>Floating
-                  <a href="#!" class="secondary-content">{{:inFloating}}</a>
-                </div>
-                </li>
-              <li class="collection-item">
-                <div>Remainder
-                  <a href="#!" class="secondary-content">{{:inRemainder}}</a>
-                </div>
-              </li>
-              
-            {{if scripts}}
-              {{for scripts}}
-              <li class="collection-item script">
-                <div>Script #{{:script_index}}
-                  <a href="#!" class="secondary-content script">{{:script}}</a>
-                </div>
-              </li>
-              {{/for}}
-            {{/if}}
-            </ul>
-          </div> 
-        </div>
-      {{/for}}
-
-      <div class="col s2 chevron">
-        <p class="center"> <i class="material-icons ">chevron_right</i> </p>
-      </div>
-
-      
-      <div class="col s5 output">
-        {{for outputs}}
-        <div class="row">
-          <div class="col s1">
-            <p id="index">#{{:output_index}}</p> 
-          </div>
-          <div class="col s9">
-            <p class="address"> {{:outAddress}} </p>
-          </div>
-          <div class="col s2 amnt">
-            <p>{{:outAmount}}</p>
-          </div>
-        </div>
-
-        <div class="row details">
-          <ul class="collection" style="line-style: none;">
-            <li class="collection-item">
-            <div>Token ID
-              <a href="#!" class="secondary-content">{{:outTokenID}}</a>
-            </div>
-            </li>
-            <li class="collection-item">
-              <div>Floating
-                <a href="#!" class="secondary-content">{{:outFloating}}</a>
-              </div>
-              </li>
-              <li class="collection-item">
-                <div>Remainder
-                  <a href="#!" class="secondary-content">{{:outRemainder}}</a>
-                </div>
-                </li>
-          </ul>
-        </div> 
-
-        <div class="divider"></div>
-      {{/for}}
-      </div>
-
-      </div>
-    </div>
-
-</div>
 
 </script>
 
-<script id="txnlist-template" type="text/x-jsrender">
-  <div class="row">
-    <ul class="collection with-header">
-      <li class="collection-header"><h4>Transaction List</h4></li>
-      
-      {{for txnlist}}
-       <li onclick='txnClicked( "{{:hash}}" )' class="collection-item hash-wrapper"><div>
-          <div class="of-text">TXN #{{:index}}</div>
-          <a href="#" id="txn-hash" class="secondary-content">{{:hash}}</a>
-         </div>
-      </li>
-
-      {{/for}}
-
-    </ul>
-  </div>
-  
-</script>
-<script id="scriptTemplate" type="text/x-jsrender">
-  {{for scripts}}
-  <li class="secondary-content">
-    {{:script}}
-  </li>
-  {{/for}}
-</script>
 
 <div id="wrapper">
   <header>
-    <nav class="menu navbar-fixed" role="navigation">
+    <div class="menu navbar-fixed" role="navigation">
       <div id="header" class="row">
-        <div style="padding-left:2.1%;padding-top:2.5%;padding-bottom:2%" class="col push-s1 s4">
+        <div id="brand" class="col push-s1 s4">
           <img style="width:200px;" src="assets/block2.svg" alt="logo">
+          <div id="title">
+            <p>The Minima <br> Blockchain Explorer</p>
+          </div>
         </div>
+
+        <div id="titleR" class="right hide-on-small-and-down">
+          <p>Testnet <br> <span>Powered by Minima</span></p>
+          <img src="assets/minimaMark.svg" alt="logo">
+        </div>
+
       </div>
-    </nav>
+    </div>
 
     <div style="flex-direction: row!important; padding-left: 10%;" id="nav-wrapper" class="row">
       <div class="col">
@@ -459,12 +291,6 @@ function setDetails(txpow) {
   
   <!-- Details BODY INFO -->
   <div id="content">
-
-
-
-
-
-
 
         <!-- <div class="row">
           <div class="col s12">
@@ -547,6 +373,40 @@ function setDetails(txpow) {
       </ul>
   </div> -->
 </div>
+
+<footer>
+  <div class="row">
+    <div style="padding-left: 4%" class="col l6 m3 s12">
+      <div class="row">
+        <div id="footer-logo-col" class="col s5">
+          <img width="180" src="assets/minilogoblacklandscape.svg">
+        </div>
+      </div>
+
+    </div>
+    <div class="col l1 m1 s6">
+
+    </div>
+    <div id="socials-s" class="col l5 m8 s12 hide-on-med-and-up socials">
+      <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:30px;" alt="website"></a>
+      <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:30px;" alt="github"></a>
+      <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:30px;" alt="telegram"></a>
+      <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:30px;" alt="medium"></a>
+      <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:30px;" alt="twitter"></a>
+      <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:30px;" alt="youtube"></a>
+    </div>
+    <div id="socials-b" class="col l4 s12 hide-on-small-only socials">
+      <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
+      <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
+      <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
+      <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
+      <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
+      <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
+    </div>
+  </div>
+</footer>
+
+
 <!--  Scripts-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.7/jsrender.min.js"></script>
 <script src="js/bin/materialize.js"></script>

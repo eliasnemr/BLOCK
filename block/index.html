@@ -73,99 +73,6 @@
 // JQUERY Helpful Functions
 $(document).ready(function() {
 
-  // if dark mode is on - set toggle, add dark to body
-  Minima.file.load("userPreference.txt", function(res){
-    if(res.success){
-      var preference = JSON.parse(res.data);
-
-      if(preference.mode == "dark"){
-        $('body').addClass("dark");
-        $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
-        $('#checkbox').prop('checked', true);
-
-      } else if(preference.mode == "light"){
-        $('body').removeClass("dark");  
-        $('.body-icon').attr("src", "assets/blocklogo.svg");
-        $('#checkbox').prop('checked', false);
-
-      }
-    }
-
-  });
-
-  Minima.file.load("prune.txt", function(res){
-    if(res.success){
-      var pruning = JSON.parse(res.data);
-
-      if (pruning && pruning.status) {
-        var period = pruning.period;
-
-        $('#dropdown1 li').children().each( function() {
-            
-          if (this.id !== period) {
-            $(this).removeClass('active');
-          } else {
-            $(this).addClass('active');
-          } 
-
-        });
-
-
-      } else if(pruning && !pruning.status) {
-
-        $('#dropdown1 li').children().each( function() {
-            
-          if (this.id !== "Everything") {
-            $(this).removeClass('active');
-          } else {
-            $(this).addClass('active');
-          }
-
-        });
-      }
-    }
-
-  });
-  
-  // init dropdown
-  $('.dropdown-trigger').dropdown({coverTrigger: false, onCloseEnd: function(){
-
-    // here lelo
-    Minima.file.load("prune.txt", function(res){
-      if(res.success){
-        var pruning = JSON.parse(res.data);
-  
-        if (pruning && pruning.status) {
-          var period = pruning.period;
-  
-          $('#dropdown1 li').children().each( function() {
-              
-            if (this.id !== period) {
-              $(this).removeClass('active');
-            } else {
-              $(this).addClass('active');
-            } 
-  
-          });
-  
-  
-        } else if(pruning && !pruning.status) {
-  
-          $('#dropdown1 li').children().each( function() {
-              
-            if (this.id !== "Everything") {
-              $(this).removeClass('active');
-            } else {
-              $(this).addClass('active');
-            }
-  
-          });
-        }
-      }
-  
-    });
-
-  }});
   // Materialize tooltip
   $('.tooltipped').tooltip({delay: 50});
   
@@ -214,7 +121,7 @@ function setPrune(time) {
           M.toast({html:"Changed pruning to a month."});
 
         } else if (time == '388800') {
-          M.toast({html:"Changed pruning to a 3 months."});
+          M.toast({html:"Changed pruning to 3 months."});
 
         } else if (time == '777600') {
           M.toast({html:"Changed pruning to 6 months."});
@@ -276,7 +183,112 @@ function copy(id) {
       } 
 
       Minima.init(function(msg){
-        if(msg.event == 'connected'){
+        if (msg.event == 'connected'){
+              $('#checkbox').on("change", function(res){
+
+                const preference = {
+                    "mode": "light"
+                }
+                if($(this).prop('checked')) {
+                    $('body').addClass("dark");
+                    preference.mode = "dark";
+                    var json = JSON.stringify(preference);
+          
+                    Minima.file.save(json, "userPreference.txt", function(res){});
+                } else if(!$(this).prop('checked')) {
+                    $('body').removeClass("dark");
+                    preference.mode = "light";
+                    var json = JSON.stringify(preference);
+          
+                    Minima.file.save(json, "userPreference.txt", function(res){});
+                }
+              });
+              // dark mode
+              Minima.file.load("userPreference.txt", function(res){
+                if(res.success){
+                  var preference = JSON.parse(res.data);
+
+                  if(preference.mode == "dark"){
+                    $('body').addClass("dark");
+                    $('#checkbox').attr('checked', true);
+                  } else if(preference.mode == "light"){
+                    $('body').removeClass("dark"); 
+                    $('#checkbox').attr('checked', false);
+
+                  }
+                }
+
+              });
+              // init dropdown
+              $('.dropdown-trigger').dropdown({coverTrigger: false, onCloseEnd: function(){
+
+                Minima.file.load("prune.txt", function(res){
+                  if(res.success){
+                    var pruning = JSON.parse(res.data);
+
+                    if (pruning && pruning.status) {
+                      var period = pruning.period;
+
+                      $('#dropdown1 li').children().each( function() {
+                          
+                        if (this.id !== period) {
+                          $(this).removeClass('active');
+                        } else {
+                          $(this).addClass('active');
+                        } 
+
+                      });
+
+
+                    } else if(pruning && !pruning.status) {
+
+                      $('#dropdown1 li').children().each( function() {
+                          
+                        if (this.id !== "Everything") {
+                          $(this).removeClass('active');
+                        } else {
+                          $(this).addClass('active');
+                        }
+
+                      });
+                    }
+                  }
+                });
+              },
+              onOpenStart: function() {
+                Minima.file.load("prune.txt", function(res){
+                  if(res.success){
+                    var pruning = JSON.parse(res.data);
+              
+                    if (pruning && pruning.status) {
+                      var period = pruning.period;
+              
+                      $('#dropdown1 li').children().each( function() {
+                        if (this.id == period) {
+                          $(this).addClass('active');
+                        } else {
+                          $(this).removeClass('active');
+                        }               
+                      });
+              
+              
+                    } else if(pruning && !pruning.status) {
+              
+                      $('#dropdown1 li').children().each( function() {
+                          
+                        if (this.id !== "Everything") {
+                          $(this).removeClass('active');
+                        } else {
+                          $(this).addClass('active');
+                        }
+              
+                      });
+                    }
+                  }
+                });
+              },
+              }
+              );
           
           initTable();
 
@@ -299,6 +311,10 @@ function copy(id) {
         } else if(msg.event == 'miningstop') {
 
           M.toast({html:"Mining Transaction Finished..."});
+
+        } else if(!msg.event == 'connected') {
+
+            $('body').addClass('backdrop');
 
         }
       });
@@ -358,21 +374,6 @@ function copy(id) {
     event.stopPropagation();
     });
 
-    // dark mode
-    Minima.file.load("userPreference.txt", function(res){
-      if(res.success){
-        var preference = JSON.parse(res.data);
-
-        if(preference.mode == "dark"){
-          $('body').addClass("dark");
-          $('.body-icon').attr("src", "assets/blocklogowhitetext.svg");
-        } else if(preference.mode == "light"){
-          $('body').removeClass("dark");  
-          $('.body-icon').attr("src", "assets/blocklogo.svg");
-        }
-      }
-
-    });
 
     // load more btn
     $('.load-btn').on('click', function(){
@@ -393,8 +394,16 @@ function copy(id) {
   <header>
     <div class="menu navbar-fixed" role="navigation">
       <div id="header" class="row">
-        <div style="padding-left:2.1%;padding-top:2.5%;padding-bottom:2%" class="col push-s1 s4">
+        <div id="brand" class="col push-s1 s4">
           <img style="width:200px;" src="assets/block2.svg" alt="logo">
+          <div id="title">
+            <p>The Minima <br> Blockchain Explorer</p>
+          </div>
+        </div>
+
+        <div id="titleR" class="right hide-on-small-and-down">
+            <p>Testnet <br> <span>Powered by Minima</span></p>
+            <img src="assets/minimaMark.svg" alt="logo">
         </div>
       </div>
     </div>
@@ -484,28 +493,6 @@ function copy(id) {
   </footer>
 </div>
 
-
-  <script>
-    $('#checkbox').on("change", function(res){
-
-      const preference = {
-          "mode": "light"
-      }
-      if($(this).prop('checked')) {
-          $('body').addClass("dark");
-          preference.mode = "dark";
-          var json = JSON.stringify(preference);
-
-          Minima.file.save(json, "userPreference.txt", function(res){});
-      } else if(!$(this).prop('checked')) {
-          $('body').removeClass("dark");
-          preference.mode = "light";
-          var json = JSON.stringify(preference);
-
-          Minima.file.save(json, "userPreference.txt", function(res){});
-      }
-    });
-  </script>
   <script src="js/bin/materialize.js"></script>
   </body>
 </html>
