@@ -43,7 +43,7 @@
         if(txpow.response.status && txpow.response.rows.length > 0) {
           //setDetails(txpow);
           loadDetails(txpow);
-        } else if(!txpow.response.status) {
+        } else if(!txpow.response.status || txpow.response.count == 0) {
           // alert div 
           var markup = '<div id="notfound" class="row center">'+ 
                         '<div class="col s12">'+

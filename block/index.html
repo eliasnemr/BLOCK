@@ -23,11 +23,11 @@
   // INIT Tabulator blocks-table..
   var table = null;
   function initTable() {
+
     // Create a tabulator instance, and refer it to the div canvas
     table = new Tabulator("#example-table", {
-      pagination: "local",
+      pagination: 'local',
       layout:"fitDataTable",
-      //maxHeight: "660",
       paginationSize: 10,
       layout: "fitColumns",
       resizableColumns: false,
@@ -70,6 +70,13 @@
     
 }
 
+function loadMore(rows) {
+  var pageSize = table.getPageSize(); 
+
+  pageSize = pageSize+rows;
+  table.setPageSize(pageSize);
+}
+
 // JQUERY Helpful Functions
 $(document).ready(function() {
 
@@ -88,8 +95,7 @@ $(document).ready(function() {
 });
 
 $( "#dropdown1" ).on( "change", function(event, ui) {
-  // use ui.value for the value
-  console.log("smth changed..")
+
 });
 
 function setPrune(time) {
@@ -184,6 +190,12 @@ function copy(id) {
 
       Minima.init(function(msg){
         if (msg.event == 'connected'){
+
+              // check if table rows > 10
+              if (table && table.getDataCount() > 10) {
+                $('#loadMoreBtn').removeClass('disabled');
+              }
+
               $('#checkbox').on("change", function(res){
 
                 const preference = {
@@ -293,15 +305,21 @@ function copy(id) {
           initTable();
 
           Minima.sql("SELECT * from txpowlist WHERE ISBLOCK = 1 ORDER BY HEIGHT DESC LIMIT 100", function(res){
+            console.log(res);
             // Loop through the json rows arr and add..
             $.each(res.response.rows, function(i, el){
-              table.addRow(el);
+              table.addRow(el);            
             });
       
           });
         
         } else if(msg.event == 'newtxpow') {
-          
+
+          // check if table rows > 10
+          if (table.getDataCount() > 10) {
+            $('#loadMoreBtn').removeClass('disabled');
+          }
+
           updateTableData(msg.info);
               
         } else if(msg.event == 'miningstart') {
@@ -389,52 +407,54 @@ function copy(id) {
   });
   </script>
 
-  
-  <div id="wrapper">
-  <header>
-    <div class="menu navbar-fixed" role="navigation">
-      <div id="header" class="row">
-        <div id="brand" class="col push-s1 s4">
-          <img style="width:200px;" src="assets/block2.svg" alt="logo">
-          <div id="title">
-            <p>The Minima <br> Blockchain Explorer</p>
-          </div>
-        </div>
 
-        <div id="titleR" class="right hide-on-small-and-down">
-            <p>Testnet <br> <span>Powered by Minima</span></p>
-            <img src="assets/minimaMark.svg" alt="logo">
+  <header>
+    <div id="header" style="margin-bottom:0!important" class="row">
+      <div id="blockicon" class="col m7 s12">
+        <img style="width:165px;" class="left" src="assets/block2.svg" alt="logo">
+        <div id="title" class="left">
+          <p>The Minima <br> Blockchain Explorer</p>
+        </div>
+      </div>
+    
+      <div id="titleR" class="col offset-m3 m2 hide-on-small-and-down">
+        <div class="valign-wrapper right">
+            <p>Testnet <br> <span style="color: #fff!important; font-size:0.8rem">Powered By Minima</span></p>
+            <div class="wrapper">
+              <img src="assets/minimaMark.svg" alt="white-logo">
+            </div>
         </div>
       </div>
     </div>
-  
+
     <div id="nav-wrapper" class="row">
-      <div class="col">
-        <div class="switch">
-          <label>
-            Night mode
-            <input id="checkbox" type="checkbox">
-            <span class="lever"></span>
-          </label>
+      <div class="wrapper">
+        <div class="col">
+          <div class="prune-dd">
+            <a class='dropdown-trigger' href='#' data-target='dropdown1'><label>Pruning <i class="material-icons">arrow_drop_down</i></label></a> 
+            <ul id='dropdown1' class='dropdown-content'>
+              <li><a id="30240" onclick="setPrune('30240')" href="#!">1 week</a></li>
+              <li><a id="129600" onclick="setPrune('129600')" href="#!">1 month</a></li>
+              <li><a id="388800" onclick="setPrune('388800')" href="#!" class="active">3 months</a></li>
+              <li><a id="777600" onclick="setPrune('777600')" href="#!">6 months</a></li>
+              <li><a id="1555200" onclick="setPrune('1555200')" href="#!">A year</a></li>
+              <li><a id="Everything" onclick="setPrune('Everything')" href="#!">Keep all</a></li>
+            </ul>
+          </div>
         </div>
-      </div>
-      <div class="col">
-        <div class="prune-dd">
-          <a class='dropdown-trigger' href='#' data-target='dropdown1'><label>Pruning <i class="material-icons">arrow_drop_down</i></label></a> 
-          <ul id='dropdown1' class='dropdown-content'>
-            <li><a id="30240" onclick="setPrune('30240')" href="#!">1 week</a></li>
-            <li><a id="129600" onclick="setPrune('129600')" href="#!">1 month</a></li>
-            <li><a id="388800" onclick="setPrune('388800')" href="#!" class="active">3 months</a></li>
-            <li><a id="777600" onclick="setPrune('777600')" href="#!">6 months</a></li>
-            <li><a id="1555200" onclick="setPrune('1555200')" href="#!">A year</a></li>
-            <li><a id="Everything" onclick="setPrune('Everything')" href="#!">Keep all</a></li>
-          </ul>
+        <div class="col">
+          <div class="switch">
+            <label>
+              Night mode
+              <input id="checkbox" type="checkbox">
+              <span class="lever"></span>
+            </label>
+          </div>
         </div>
+        
       </div>
     </div>
   </header>
-  
-
   <!-- Body INFO -->
   <div id="content"> 
       <div class="row">
@@ -457,41 +477,43 @@ function copy(id) {
         <div id="example-table"></div>
       </div>
     </div>
+    <div class="row">
+      <div class="col offset-m9 m3 offset-s7 s3">
+        <div id="loadMoreBtn" onclick="loadMore(10)" class="disabled btn-small btn-flat backBtn">Load More</div>
+      </div>
+    </div>
   </div>
-
-
   <footer>
+  <div class="row">
+    <div style="padding-left: 4%" class="col l6 m3 s12">
       <div class="row">
-        <div style="padding-left: 4%" class="col l6 m3 s12">
-          <div class="row">
-            <div id="footer-logo-col" class="col s5">
-              <img width="180" src="assets/minilogoblacklandscape.svg">
-            </div>
-          </div>
-
-        </div>
-        <div class="col l1 m1 s6">
-
-        </div>
-        <div id="socials-s" class="col l5 m8 s12 hide-on-med-and-up socials">
-          <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:30px;" alt="website"></a>
-          <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:30px;" alt="github"></a>
-          <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:30px;" alt="telegram"></a>
-          <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:30px;" alt="medium"></a>
-          <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:30px;" alt="twitter"></a>
-          <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:30px;" alt="youtube"></a>
-        </div>
-        <div id="socials-b" class="col l4 s12 hide-on-small-only socials">
-          <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
-          <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
-          <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
-          <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
-          <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
-          <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
+        <div id="footer-logo-col" class="col s5">
+          <img width="180" src="assets/minilogoblacklandscape.svg">
         </div>
       </div>
+
+    </div>
+    <div class="col l1 m1 s6">
+
+    </div>
+    <div id="socials-s" class="col l5 m8 s12 hide-on-med-and-up socials">
+      <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:30px;" alt="website"></a>
+      <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:30px;" alt="github"></a>
+      <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:30px;" alt="telegram"></a>
+      <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:30px;" alt="medium"></a>
+      <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:30px;" alt="twitter"></a>
+      <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:30px;" alt="youtube"></a>
+    </div>
+    <div id="socials-b" class="col l4 s12 hide-on-small-only socials">
+      <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
+      <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
+      <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
+      <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
+      <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
+      <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
+    </div>
+  </div>
   </footer>
-</div>
 
   <script src="js/bin/materialize.js"></script>
   </body>

@@ -1,9 +1,10 @@
-  // SQL to create the dB
-  var INITSQL = "CREATE Table IF NOT EXISTS txpowlist ( txpow LONGVARCHAR(MAX) NOT NULL, height int NOT NULL, hash VARCHAR(160) NOT NULL, isblock int NOT NULL, relayed VARCHAR(160) NOT NULL, txns int NOT NULL)";
   /** Create SQL Table */
   function createSQL(){
+    let INITSQL = "CREATE Table IF NOT EXISTS txpowlist ( id INT PRIMARY KEY AUTO_INCREMENT, txpow VARCHAR(64000) NOT NULL, height int NOT NULL, hash VARCHAR(160) NOT NULL, isblock int NOT NULL, relayed VARCHAR(160) NOT NULL, txns int NOT NULL, PRIMARY KEY(id));CREATE INDEX arrange_index ON txpowlist(height DESC, hash, txpow)";
+
     Minima.sql(INITSQL, function(resp){
-      //Minima.log("Created SQL"); 
+   
+     //Minima.log(resp);
     
     if(!resp.status){
 
@@ -12,10 +13,8 @@
     } 
   });
   }
-
-  var INSERT = "INSERT INTO txpowlist VALUES ('"
   function addTxPoW(txpow) {
-    
+    let INSERT = "INSERT INTO txpowlist (txpow, height, hash, isblock, relayed, txns) VALUES ('";
     var isblock = 0;
     if(txpow.isblock) {
       isblock = 1;

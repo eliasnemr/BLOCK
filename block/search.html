@@ -22,6 +22,13 @@
 
 <body>
   <script>
+    function loadMore(rows) {
+      var pageSize = table.getPageSize(); 
+    
+      pageSize = pageSize+rows;
+      search_table.setPageSize(pageSize);
+    }
+
     var search_table;
     window.addEventListener("load", function(res){
       
@@ -37,6 +44,13 @@
 
               if(msg.event == "connected") {
 
+                  // check if table rows > 10
+                  setTimeout(function() {
+                    if (search_table && search_table.getDataCount() > 10) {
+                      $('#loadMoreBtn').removeClass('disabled');
+                    }
+                  }, 1000)
+        
                   // dark mode
                   Minima.file.load("userPreference.txt", function(res){
                     if(res.success){
@@ -59,17 +73,19 @@
                           search.push(el);
                       });
 
-                      if(res.response.status) {
-                        if(res.response.rows.length > 1){
+                      if(res.response.status && res.response.rows.length > 1) {
+                        
                           $('#goback-wrap').remove();
                           $('#results-table').removeClass('hide');
-                            $('#navbar-search').text("Showing "+res.response.rows.length+" results..");
-                        } else if(res.response.rows.length == 1){
+                          $('#navbar-search').text("Showing "+res.response.rows.length+" results..");
+
+                      } else if(res.response.status && res.response.rows.length == 1){
+                        
                           $('#goback-wrap').remove();
                           $('#results-table').removeClass('hide');
-                            $('#navbar-search').text("Showing "+res.response.rows.length+" result..");
-                        }
-                      } else {
+                          $('#navbar-search').text("Showing "+res.response.rows.length+" result..");
+                        
+                      } else if(res.response.count == 0 || !res.response.status) {
                         $('#navbar-search').text("No results found..");
 
                         var markup = '<div id="notfound" class="row center">'+ 
@@ -86,6 +102,8 @@
 
                         $('#content').append(markup);
                         $('#results-table-col').addClass('hide');
+
+                        return false;
                       }
 
                       search_table = new Tabulator("#results-table", {
@@ -164,6 +182,11 @@
     <div class="row">
       <div id="results-table-col" class="col s12" style="padding-right: 0">
         <div id="results-table"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col offset-m8 offset-s7 s3">
+        <div id="loadMoreBtn" onclick="loadMore(10)" class="disabled btn-small btn-flat backBtn">Load More</div>
       </div>
     </div>
   </div>
