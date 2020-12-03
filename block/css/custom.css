@@ -148,11 +148,11 @@
   }
   #content {
     position: relative;
-    top: 200px;
-    bottom: 160px;
-    padding-bottom: 160px;
+    top: 180px;
+    bottom: 200px;
     margin-left: 10%;
     margin-right: 10%;
+    padding-bottom: 220px!important;
   }
   #example-table {
     overflow: auto;
@@ -199,20 +199,6 @@
     #header.row {
       padding-top:3%!important;
     }
-  }
-  @media only screen and (min-width: 1200px) {
-    .table-section {
-      margin-left: 150px;
-      margin-right: 150px;
-    }
-    .my-search-wrap {
-      margin-left: 150px;
-      margin-right: 150px;
-    }
-    footer {
-      padding: 5% 5% 7% 5% !important;
-    }
-
   }
   @media only screen and (min-width: 993px) {
     #socials-b  {
@@ -345,6 +331,9 @@
   body {
     font-family: manrope-regular !important;
     background-color: #F0F0F9;
+    height:100%;
+    margin:0;
+    padding:0;
   }
   body h5 {
     font-family: EXO_Bold !important;
@@ -576,7 +565,7 @@
   }
 
   header #titleR img {
-    width: 30px;
+    width: 36px;
   }
   header .wrapper {
     margin-left: 5%;
@@ -588,14 +577,13 @@
     color: #317AFF;
   }
 
-
   /** footer */
   footer {
     position: fixed;
     bottom: 0;
+    left:0;
     z-index: 10;
     width:100%;
-    left:0;
     padding: 5% 5% 5% 5%;
     height: 160px;
     background-color: #031D32 !important;
