@@ -1,3 +1,4 @@
+/* :) :) :) DEFAULT FONTS :) :) :) */
 @font-face {
   font-family: manrope-regular;
   src: url('./fonts/manrope-regular.otf');
@@ -10,9 +11,102 @@
   font-family: manrope-light; 
   src: url('./fonts/manrope-light.otf')
 }
+/* :) :) :) make scrollbar transparent :) :) :) */
 ::-webkit-scrollbar {
   width: 0px;
-  background: transparent; /* make scrollbar transparent */
+  background: transparent; 
+}
+/* :) :) :) :) :) :) Main tags :) :) :) :) :) :) :) :) :) */
+body {
+  font-family: manrope-regular !important;
+  background-color: #F0F0F9;
+}
+/** footer */
+footer {
+  bottom: 0;
+  width: 100%;
+  padding: 5% 5% 5% 5%;
+  height: 160px;
+  background-color: #031D32 !important;
+}
+#footer-logo-col {
+  padding-left: 5%;
+}
+#testnet {
+  padding-left: 5%;
+  color: #317AFF;
+  vertical-align: middle;
+}
+#socials-s {
+  padding-top: 5%;
+}
+.socials a {
+  float:right;
+  padding-right: 3.5%;
+  cursor: pointer;
+}
+.socials a:hover {
+  transform: scale(1.1);
+}
+
+/** header */
+header {
+  position: relative;
+  margin-bottom: 0.5%;
+  width: 100%;
+  height: 160px;
+  background-color: #031D32 !important;
+}
+header .row {
+  margin-bottom:0!important;
+}
+header #header {
+  background-color: #031D32;
+  padding-top: 2%!important;
+  margin-bottom:0!important;
+  margin-left: 10%;
+  margin-right: 10%;
+}
+header #blockicon img {
+  margin-right: 3%;
+  width: 167px;
+}
+header #title p {
+  font-size: 0.90rem;
+  width: 30px;
+  color: #fff;
+  font-family: manrope-bold;
+  margin-left: 10%;
+  white-space: nowrap;
+}
+header #titleR {
+  position: relative;
+  padding-right:0;
+}
+header #titleR img {
+  width: 36px;
+  height:62px;
+}
+header #titleR p {
+  float:right;
+  margin-right:5%;
+  text-align: right;
+  font-size: 1.0rem;
+  color: #317AFF;
+  line-height: 18.9px;
+}
+header #titleR p span {
+  color: #fff!important;
+  font-size: 0.8rem;
+}
+#page-container {
+  position: relative;
+  min-height: 90%;
+}
+main {
+  min-height: calc(100vh - 160px - 160px);
+  margin: 0 auto;
+  width: 80vw;
 }
 .backdrop {
   opacity: 0.2;
@@ -33,13 +127,12 @@
     float: right;
   }
   #nav-wrapper {
+    position: absolute;
+    bottom: 0;
     width: 100%;
     background-color: #91919D;
     line-height: 35px;
-    position: absolute;
-    bottom:0;
-    padding-right:6%;
-    padding-bottom:0!important;
+
   }
   #nav-wrapper .row {
     margin-bottom:0;
@@ -66,6 +159,8 @@
   .switch label .lever {
     height: 12px;
     background-color: #F0F0F9;
+    margin-right:0;
+
   }
   .dropdown-trigger label {
     vertical-align: middle;
@@ -146,14 +241,6 @@
   nav {
     background-color: #031D32;
   }
-  #content {
-    position: relative;
-    top: 180px;
-    bottom: 200px;
-    margin-left: 10%;
-    margin-right: 10%;
-    padding-bottom: 220px!important;
-  }
   #example-table {
     overflow: auto;
   }
@@ -169,6 +256,7 @@
     text-align: left;
     padding-left: 1%;
     text-overflow: ellipsis;
+    font-size: 1.0rem;
   }
   #search-wrapper .search {
     position: absolute;
@@ -177,7 +265,7 @@
   }
   #content h5 {
     font-family: manrope-bold !important;
-    font-size: 1.2rem;
+    font-size: 1.0rem;
     padding:0;
     margin:0;
     margin-top: 0;
@@ -216,16 +304,36 @@
     }
   }
   @media only screen and (max-width: 650px) {
-    footer {
-      position: fixed;
-    }
     #header.row {
       padding-top: 7%!important;
     }
-  }
+  } 
   @media only screen and (max-width:450px) {
     #header.row {
       padding-top: 7%!important;
+    }
+    header {
+      margin-bottom: 5%;
+      height: 140px!important;
+    }
+    footer {
+      height: 140px!important;
+    }
+    main {
+      min-height: calc(100vh - 140px - 140px);
+    } 
+
+    .socials a {
+      padding-right: 7.5%;
+    }
+    #lastsocial {
+      padding-right:1.5%;
+    }
+    #blockicon img {
+      width: 130px!important;
+    }
+    #blockicon #title p {
+      font-size: 0.8rem!important;
     }
   }
 
@@ -254,7 +362,7 @@
     border: 0 !important; 
   }
   .tabulator-col-title {
-    font-size: 1.2rem;
+    font-size: 1.0rem;
     font-family: manrope-bold;
     text-transform: none;
   }
@@ -326,17 +434,6 @@
   }
   [role="columnheader"][tabulator-field="TXNS"] * {
     text-align: right;
-  }
-  
-  body {
-    font-family: manrope-regular !important;
-    background-color: #F0F0F9;
-    height:100%;
-    margin:0;
-    padding:0;
-  }
-  body h5 {
-    font-family: EXO_Bold !important;
   }
 
   input {
@@ -528,87 +625,5 @@
     font-family: manrope-bold;
     color: #fff;
   }
-  html {
-    height: 100%;
-    left:0;
-  }
-  /** header */
-  header {
-    position: absolute;
-    top:0;
-    left:0;
-    width: 100%;
-    z-index: 10;
-    height: 160px;
-    background-color: #031D32 !important;
-  }
-  header .row {
-    margin-bottom:0!important;
-  }
-  header #header {
-    background-color: #031D32;
-    padding-top: 2%!important;
-    margin-bottom:0!important;
-    margin-left: 10%;
-    margin-right: 10%;
-  }
-  header #blockicon img {
-    margin-right:1%;
-  }
-  header #title p {
-    font-size: 0.90rem;
-    width: 30px;
-    color: #fff;
-    font-family: manrope-bold;
-    margin-left: 10%;
-    white-space: nowrap;
-  }
-
-  header #titleR img {
-    width: 36px;
-  }
-  header .wrapper {
-    margin-left: 5%;
-  }
-  header #titleR p {
-    text-align: right;
-    width: 150px!important;
-    font-size: 1.0rem;
-    color: #317AFF;
-  }
-
-  /** footer */
-  footer {
-    position: fixed;
-    bottom: 0;
-    left:0;
-    z-index: 10;
-    width:100%;
-    padding: 5% 5% 5% 5%;
-    height: 160px;
-    background-color: #031D32 !important;
-  }
-  #footer-logo-col {
-    padding-left: 5%;
-  }
-  #testnet {
-    padding-left: 5%;
-    color: #317AFF;
-    vertical-align: middle;
-  }
-  #socials-s {
-    padding-top: 5%;
-  }
-  .socials a {
-    float:right;
-    padding-right: 3.5%;
-    cursor: pointer;
-  }
-  .socials a:hover {
-    transform: scale(1.1);
-  }
-  #lastsocial {
-    padding-right: 0!important;
-  }
-
+  
   

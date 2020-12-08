@@ -1,10 +1,10 @@
   /** Create SQL Table */
   function createSQL(){
-    const INITSQL = "CREATE Table IF NOT EXISTS txpowlist ( id INT PRIMARY KEY AUTO_INCREMENT, txpow VARCHAR(64000) NOT NULL, height int NOT NULL, hash VARCHAR(160) NOT NULL, isblock int NOT NULL, relayed VARCHAR(160) NOT NULL, txns int NOT NULL, PRIMARY KEY(id));CREATE INDEX arrange_index ON txpowlist(height DESC, hash, txpow)";
+    let INITSQL = "CREATE Table IF NOT EXISTS txpowlist ( id INT PRIMARY KEY AUTO_INCREMENT, txpow VARCHAR(64000) NOT NULL, height int NOT NULL, hash VARCHAR(160) NOT NULL, isblock int NOT NULL, relayed VARCHAR(160) NOT NULL, txns int NOT NULL, PRIMARY KEY(id));CREATE INDEX IF NOT EXISTS arrange_index ON txpowlist(height DESC, hash, txpow)";
 
     Minima.sql(INITSQL, function(resp){
-   
-     //Minima.log(resp);
+      
+     Minima.log(resp);
     
     if(!resp.status){
 
@@ -14,7 +14,7 @@
   });
   }
   function addTxPoW(txpow) {
-    const INSERT = "INSERT INTO txpowlist (txpow, height, hash, isblock, relayed, txns) VALUES ('";
+    let INSERT = "INSERT INTO txpowlist (txpow, height, hash, isblock, relayed, txns) VALUES ('";
     var isblock = 0;
     if(txpow.isblock) {
       isblock = 1;
@@ -24,9 +24,11 @@
     txpow.body.witness.mmrproofs = {};
 
     Minima.sql(INSERT+JSON.stringify(txpow)+"', '"+txpow.header.block+"', '"+txpow.txpowid+"', '"+isblock+"', '"+txpow.header.timesecs+"', '"+txpow.body.txnlist.length+"')", function(res){
+      
       if(res.status == true) 
       { 
-        //Minima.log("TxPoW Added To SQL Table.. ");
+       Minima.log(res);
+        Minima.log("TxPoW Added To SQL Table.. ");
       }
     });
   }

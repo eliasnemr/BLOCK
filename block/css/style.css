@@ -8093,8 +8093,10 @@ input[type=range]::-ms-thumb {
 }
 body {
   height: 100% !important;
-  background-color: #031D32;
+  background-color: #031D31;
   transition: color 1s ease, background-color 1s ease;
+  margin:0;
+  padding:0;
 }
 body.dark {
   background-color: #031D32;

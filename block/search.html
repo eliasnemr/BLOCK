@@ -150,58 +150,52 @@
 
     });
 </script>
-<div id="wrapper">
-<header>
-  <div id="header" style="margin-bottom:0!important" class="row">
-    <div id="blockicon" class="col m7 s12">
-      <img style="width:165px;" class="left" src="assets/block2.svg" alt="logo">
-      <div id="title" class="left">
-        <p>The Minima <br> Blockchain Explorer</p>
+  <header>
+    <div id="header" style="margin-bottom:0!important" class="row">
+      <div id="blockicon" class="col m7 s12">
+        <img class="left" src="assets/block2.svg" alt="logo">
+        <div id="title" class="left">
+          <p>The Minima <br> Blockchain Explorer</p>
+        </div>
+      </div>
+    
+      <div id="titleR" class="col m5 hide-on-small-and-down">
+        <img class="right" src="assets/minimaMark.svg" alt="white-logo">
+        <p>Testnet <br> <span>Powered By Minima</span></p>
       </div>
     </div>
+
+    <div style="flex-direction: row!important; padding-left: 10%;" id="nav-wrapper" class="row">
+      <div class="col">
+        <div class="nav-wrapper">
+          <a href="index.html" class="breadcrumb explorer">Explorer</a>
+          <a href="index.html" class="breadcrumb explorer" id="navbar-search"></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="content">
+      <div class="row">
+        <div id="results-table-col" class="col s12" style="padding-right: 0">
+          <div id="results-table"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col offset-m8 offset-s7 s3">
+          <div id="loadMoreBtn" onclick="loadMore(10)" class="disabled btn-small btn-flat backBtn">Load More</div>
+        </div>
+      </div>
+    </div>
+  </main>
   
-    <div id="titleR" class="col offset-m3 m2 hide-on-small-and-down">
-      <div class="valign-wrapper right">
-          <p>Testnet <br> <span style="color: #fff!important; font-size:0.8rem">Powered By Minima</span></p>
-          <div class="wrapper">
-            <img src="assets/minimaMark.svg" alt="white-logo">
-          </div>
-      </div>
-    </div>
-  </div>
-
-  <div style="flex-direction: row!important; padding-left: 10%;" id="nav-wrapper" class="row">
-    <div class="col">
-      <div class="nav-wrapper">
-        <a href="index.html" class="breadcrumb explorer">Explorer</a>
-        <a href="index.html" class="breadcrumb explorer" id="navbar-search"></a>
-      </div>
-    </div>
-  </div>
-</header>
-
-  <div id="content">
-    <div class="row">
-      <div id="results-table-col" class="col s12" style="padding-right: 0">
-        <div id="results-table"></div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col offset-m8 offset-s7 s3">
-        <div id="loadMoreBtn" onclick="loadMore(10)" class="disabled btn-small btn-flat backBtn">Load More</div>
-      </div>
-    </div>
-  </div>
-
   <footer>
     <div class="row">
-      <div style="padding-left: 4%" class="col l6 s12">
+      <div style="padding-left: 4%" class="hide-on-small-and-down col l6 s12">
         <div class="row">
           <div class="col s5">
             <img style="margin-left:5%" width="180" src="assets/minilogoblacklandscape.svg">
-          </div>
-          <div class="col pull-xl1 xl4 push-l1 l5 pull-m1 m4 s11 push-s1">
-            <p style="font-family:manrope-bold;color:#317AFF">Testnet</p>
           </div>
         </div>     
       </div>
@@ -225,9 +219,7 @@
         <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
       </div>
     </div>
-</footer>
-</div>
-
+  </footer>
 
   <script src="js/bin/materialize.js"></script>
 

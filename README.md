@@ -2,13 +2,11 @@
 A block explorer built for Minima.  Traverse through the chain and search for your TxPoW, Coins and Txns.
 
 ### :rocket: Get Started
-This is a pre-**MiniDAPP** built using Html, **Materialize** Bootstrap SCSS, Vanilla JS with Jquery.  Included is the **minima.js** script.  
+This is a pre-**MiniDAPP** built using Html, **Materialize** CSS, Vanilla JS and JQUERY.  Included is the **minima.js** script.  
 
-:bellhop_bell: To make this a MiniDAPP, you'll need to use the **MiniDAPP *Tool***.
+:bellhop_bell: To make this repo a MiniDAPP, you'll need to use the **MiniDAPP *Tool*** included in this repo, 'buildscript.sh'.
 
-**1.** Make sure you are running a Minima **node** and you will start receiving your blocks.
-**2.** If you will not be converting this to a MiniDAPP to install, you can open it as a regular website by opening the **_index.html_** file.
-
+**1.** Make sure you are running a Minima **node** then connect to 127.0.0.1:9004 on your browser and install the file ~/BLOCK/minidapp/block.minidapp.
 
 #### Enjoy
 ##### Any questions?

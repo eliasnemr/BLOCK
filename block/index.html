@@ -406,24 +406,19 @@ function copy(id) {
     });
   });
   </script>
-
-
+  
   <header>
-    <div id="header" style="margin-bottom:0!important" class="row">
+    <div id="header" class="row">
       <div id="blockicon" class="col m7 s12">
-        <img style="width:165px;" class="left" src="assets/block2.svg" alt="logo">
+        <img class="left" src="assets/block2.svg" alt="logo">
         <div id="title" class="left">
           <p>The Minima <br> Blockchain Explorer</p>
         </div>
       </div>
     
-      <div id="titleR" class="col offset-m3 m2 hide-on-small-and-down">
-        <div class="valign-wrapper right">
-            <p>Testnet <br> <span style="color: #fff!important; font-size:0.8rem">Powered By Minima</span></p>
-            <div class="wrapper">
-              <img src="assets/minimaMark.svg" alt="white-logo">
-            </div>
-        </div>
+      <div id="titleR" class="col m5 hide-on-small-and-down">
+        <img class="right" src="assets/minimaMark.svg" alt="white-logo">
+        <p>Testnet <br> <span>Powered By Minima</span></p>
       </div>
     </div>
 
@@ -442,7 +437,7 @@ function copy(id) {
             </ul>
           </div>
         </div>
-        <div class="col">
+        <div style="padding-right: 0;" class="col">
           <div class="switch">
             <label>
               Night mode
@@ -455,48 +450,48 @@ function copy(id) {
       </div>
     </div>
   </header>
-  <!-- Body INFO -->
+  <main>
   <div id="content"> 
-      <div class="row">
-        <div id="search-title-col" class="col s12">
-          <h5>Discover the heaviest leaf in the chain and traverse through.</h5>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col s12">
-          <div id="search-wrapper">
-            <input id="search-input" class="tooltipped" placeholder="Search by address, coinid or tokenid" type="text" data-html="true" data-position="top" data-tooltip="Address, block number, coin id..">
-            <i id="searchBtn" class="material-icons search">search</i>
-          </div>
-        </div>
-      </div>
-
-    <!-- TABULATOR - BLOCKS table -->
     <div class="row">
-      <div class="col s12" style="padding-right:0;">
-        <div id="example-table"></div>
+      <div id="search-title-col" class="col s12">
+        <h5>Discover the heaviest leaf in the chain and traverse through.</h5>
       </div>
     </div>
     <div class="row">
-      <div class="col offset-m9 m3 offset-s7 s3">
-        <div id="loadMoreBtn" onclick="loadMore(10)" class="disabled btn-small btn-flat backBtn">Load More</div>
+      <div style="padding-right:0.7%" class="col s12">
+        <div id="search-wrapper">
+          <input id="search-input" class="tooltipped" placeholder="Search by address, coinid or tokenid" type="text" data-html="true" data-position="top" data-tooltip="Address, block number, coin id..">
+          <i id="searchBtn" class="material-icons search">search</i>
+        </div>
       </div>
+    </div>
+
+  <!-- TABULATOR - BLOCKS table -->
+  <div class="row">
+    <div class="col s12" style="padding-right:0;">
+      <div id="example-table"></div>
     </div>
   </div>
+  <div class="row">
+    <div class="col offset-m9 m3 offset-s7 s3">
+      <div id="loadMoreBtn" onclick="loadMore(10)" class="disabled btn-small btn-flat backBtn">Load More</div>
+    </div>
+  </div>
+  </div>
+  </main>
 
   <footer>
     <div class="row">
-      <div style="padding-left: 4%" class="col l6 m3 s12">
+      <div style="padding-left: 4%" class="col l6 m3 s12 hide-on-small-and-down">
         <div class="row">
           <div id="footer-logo-col" class="col s5">
             <img width="180" src="assets/minilogoblacklandscape.svg">
           </div>
         </div>
-
       </div>
-      <div class="col l1 m1 s6">
 
-      </div>
+      <div class="col l1 m1 s6"></div>
+
       <div id="socials-s" class="col l5 m8 s12 hide-on-med-and-up socials">
         <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:30px;" alt="website"></a>
         <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:30px;" alt="github"></a>
@@ -513,7 +508,7 @@ function copy(id) {
         <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
         <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
       </div>
-  </div>
+    </div>
   </footer>
 
   <script src="js/bin/materialize.js"></script>
