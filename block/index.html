@@ -22,41 +22,77 @@
   <script>
   // INIT Tabulator blocks-table..
   var table = null;
+  var app = 'Block';
+  var cryptocurrency = 'Minima';
   function initTable() {
     // Create a tabulator instance, and refer it to the div canvas
     table = new Tabulator("#example-table", {
-      pagination: "local",
-      layout:"fitDataTable",
-      //maxHeight: "660",
       paginationSize: 10,
-      layout: "fitColumns",
+      pagination: 'local',
+      layout:'fitDataTable',
+      layout: 'fitColumns',
+      responsiveLayout: 'hide',
+      index: 'HEIGHT',
       resizableColumns: false,
-      responsiveLayout: "hide",
       headerSort: false,
-      index:"HEIGHT",
-      columns:[
-
-        {title:"TxPoW", field:"TXPOW", visible: false},
-
-        {title: "Height", field: "HEIGHT", sorter: "number", responsive:0, headerSortStartingDir:"desc", width:'100', cssClass: "height-column"},
-
-        {title: "Hash", field: "HASH", responsive:2, hozAlign:'left', formatter:function(cell, formatterParams){
-          var hash = cell.getData(); 
-          hash = hash.HASH;
-          return hash;
-        }},
-        {title: "isblock", field:"isblock", visible: false},
-
-        {title: "TXNS", field:"TXNS", width:70, headerHozAlign: "right", hozAlign:'right', widthShrink:3, responsive:3},
-
-        {title: "Relayed", field:"RELAYED", headerHozAlign: "right", hozAlign:'right', width: 110, responsive:1, formatter:function(cell, formatterParams){
-            var time = cell.getData();
-            time = moment(time.RELAYED*1000).format("HH:mm:ss");
-            // time = new Date(parseInt(time.RELAYED*1000, 10)).toISOString();
-            // time = moment(time).fromNow();
+      columns: [
+        {
+          title: "TxPoW", 
+          field: "TXPOW", 
+          visible: false,
+        },
+        {
+          title: 'Height', 
+          field: 'HEIGHT', 
+          sorter: 'number', 
+          responsive: 0, 
+          headerSortStartingDir: 'desc', 
+          width: '100', 
+          cssClass: 'height-column',
+        },
+        {
+          title: 'Hash', 
+          field: 'HASH', 
+          responsive: 2, 
+          hozAlign: 'left', 
+          formatter: function(cell, formatterParams){
+            var hash = cell.getData(); 
+            hash = hash.HASH;
+            return hash;
+          },
+        },
+        {
+          title: 'isblock', 
+          field: 'isblock', 
+          visible: false,
+        },
+        {
+          title: 'TXNS', 
+          field: 'TXNS', 
+          width: 70, 
+          headerHozAlign: 'right', 
+          hozAlign: 'right', 
+          widthShrink: 3, 
+          responsive: 3,
+        },
+        {
+          title: 'Relayed', 
+          field: 'RELAYED', 
+          headerHozAlign: 'right', 
+          hozAlign:'right',
+          width: 110, 
+          responsive: 1, 
+          formatter: function(cell, formatterParams) {
+            // console.log(cell);
+            // console.log(cell.getData());
+            var time = cell.getData().RELAYED;
+            // console.log(app + ': time relayed ms: '+ time);
+            // console.log(time);
+            time = moment(parseInt(time)).format("HH:mm:ss");
+            // console.log(app + ': formatted time, ' + time);
             return time;
-        }},
-
+          },
+        },
       ],
       rowClick:function(e, row){
 
@@ -85,11 +121,6 @@ $(document).ready(function() {
 
 
 
-});
-
-$( "#dropdown1" ).on( "change", function(event, ui) {
-  // use ui.value for the value
-  console.log("smth changed..")
 });
 
 function setPrune(time) {
@@ -172,55 +203,55 @@ function copy(id) {
 
         table.addRow(
           {
-            TXPOW: JSON.stringify(msg.txpow),
+            TXPOW: decodeURI(msg.txpow),
             HEIGHT: msg.txpow.header.block,
               HASH: msg.txpow.txpowid,
               isblock: isblock,
                 TXNS: msg.txpow.body.txnlist.length,
-                RELAYED: msg.txpow.header.timesecs
+                RELAYED: msg.txpow.header.timemilli
                 },
                   true);
       } 
 
       Minima.init(function(msg){
         if (msg.event == 'connected'){
-              $('#checkbox').on("change", function(res){
+          $('#checkbox').on("change", function(res){
 
-                const preference = {
-                    "mode": "light"
-                }
-                if($(this).prop('checked')) {
-                    $('body').addClass("dark");
-                    preference.mode = "dark";
-                    var json = JSON.stringify(preference);
-          
-                    Minima.file.save(json, "userPreference.txt", function(res){});
-                } else if(!$(this).prop('checked')) {
-                    $('body').removeClass("dark");
-                    preference.mode = "light";
-                    var json = JSON.stringify(preference);
-          
-                    Minima.file.save(json, "userPreference.txt", function(res){});
-                }
-              });
-              // dark mode
-              Minima.file.load("userPreference.txt", function(res){
-                if(res.success){
-                  var preference = JSON.parse(res.data);
+            const preference = {
+                "mode": "light"
+            }
+            if($(this).prop('checked')) {
+                $('body').addClass("dark");
+                preference.mode = "dark";
+                var json = JSON.stringify(preference);
+      
+                Minima.file.save(json, "userPreference.txt", function(res){});
+            } else if(!$(this).prop('checked')) {
+                $('body').removeClass("dark");
+                preference.mode = "light";
+                var json = JSON.stringify(preference);
+      
+                Minima.file.save(json, "userPreference.txt", function(res){});
+            }
+          });
+          // dark mode
+          Minima.file.load("userPreference.txt", function(res){
+            if(res.success){
+              var preference = JSON.parse(res.data);
 
-                  if(preference.mode == "dark"){
-                    $('body').addClass("dark");
-                    $('#checkbox').attr('checked', true);
-                  } else if(preference.mode == "light"){
-                    $('body').removeClass("dark"); 
-                    $('#checkbox').attr('checked', false);
+              if(preference.mode == "dark"){
+                $('body').addClass("dark");
+                $('#checkbox').attr('checked', true);
+              } else if(preference.mode == "light"){
+                $('body').removeClass("dark"); 
+                $('#checkbox').attr('checked', false);
 
-                  }
-                }
+              }
+            }
 
-              });
-              // init dropdown
-              $('.dropdown-trigger').dropdown({coverTrigger: false, onCloseEnd: function(){
+          });
+          // init dropdown
+          $('.dropdown-trigger').dropdown({coverTrigger: false, onCloseEnd: function(){
 
                 Minima.file.load("prune.txt", function(res){
                   if(res.success){
@@ -288,16 +319,18 @@ function copy(id) {
                 });
               },
               }
-              );
+            );
           
           initTable();
 
-          Minima.sql("SELECT * from txpowlist WHERE ISBLOCK = 1 ORDER BY HEIGHT DESC LIMIT 100", function(res){
-            // Loop through the json rows arr and add..
-            $.each(res.response.rows, function(i, el){
-              table.addRow(el);
-            });
-      
+          Minima.sql("SELECT * from txpowlist WHERE ISBLOCK = 1 ORDER BY HEIGHT DESC LIMIT 100", function(res) {
+            // console.log(app + ': fetching all previous blocks saved on SQL.');
+            // console.log(res);
+            if (res.status) {
+              $.each(res.response.rows, function(i, el){
+                table.addRow(el);
+              });
+            }
           });
         
         } else if(msg.event == 'newtxpow') {
@@ -389,8 +422,6 @@ function copy(id) {
   });
   </script>
 
-  
-  <div id="wrapper">
   <header>
     <div class="menu navbar-fixed" role="navigation">
       <div id="header" class="row">
@@ -461,37 +492,24 @@ function copy(id) {
 
 
   <footer>
+    <div class="container">
       <div class="row">
-        <div style="padding-left: 4%" class="col l6 m3 s12">
-          <div class="row">
-            <div id="footer-logo-col" class="col s5">
-              <img width="180" src="assets/minilogoblacklandscape.svg">
-            </div>
-          </div>
-
+        <div class="col s12 m6" id="footer-col-icon">
+            <img src="assets/minilogoblacklandscape.svg">
         </div>
-        <div class="col l1 m1 s6">
-
-        </div>
-        <div id="socials-s" class="col l5 m8 s12 hide-on-med-and-up socials">
-          <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:30px;" alt="website"></a>
-          <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:30px;" alt="github"></a>
-          <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:30px;" alt="telegram"></a>
-          <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:30px;" alt="medium"></a>
-          <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:30px;" alt="twitter"></a>
-          <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:30px;" alt="youtube"></a>
-        </div>
-        <div id="socials-b" class="col l4 s12 hide-on-small-only socials">
-          <a href="https://minima.global/" target="_" id="lastsocial"><img src="assets/social1.svg" style="width:40px;" alt="website"></a>
-          <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" style="width:40px;" alt="github"></a>
-          <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" style="width:40px;" alt="telegram"></a>
-          <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" style="width:40px;" alt="medium"></a>
-          <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" style="width:40px;" alt="twitter"></a>
-          <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" style="width:40px;" alt="youtube"></a>
+          
+        <div class="col s12 m6 socials right-align">
+          <a href="https://minima.global/" target="_"><img src="assets/social1.svg" alt="website"></a>
+          <a href="https://github.com/minima-global" target="_"><img src="assets/social2.svg" alt="github"></a>
+          <a href="https://t.me/Minima_Global" target="_"><img src="assets/social3.svg" alt="telegram"></a>
+          <a href="https://medium.com/minima-global" target="_"><img src="assets/social4.svg" alt="medium"></a>
+          <a href="https://twitter.com/Minima_Global" target="_"><img src="assets/social5.svg" alt="twitter"></a>
+          <a href="https://www.youtube.com/channel/UCDe2j57uQrUVtVizFbDpsoQ" target="_"><img src="assets/social6.svg" alt="youtube"></a>
         </div>
       </div>
+    </div>
   </footer>
-</div>
+
 
   <script src="js/bin/materialize.js"></script>
   </body>

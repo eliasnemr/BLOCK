@@ -1,5 +1,13 @@
+  const app = 'BLOCK';
   // SQL to create the dB
-  var INITSQL = "CREATE Table IF NOT EXISTS txpowlist ( txpow LONGVARCHAR(MAX) NOT NULL, height int NOT NULL, hash VARCHAR(160) NOT NULL, isblock int NOT NULL, relayed VARCHAR(160) NOT NULL, txns int NOT NULL)";
+  var INITSQL =
+  "CREATE Table IF NOT EXISTS txpowlist ("+
+  "txpow LONGVARCHAR(64000) NOT NULL," + 
+  "height BIGINT NOT NULL," +
+  "hash VARCHAR(160) NOT NULL," +
+  "isblock int NOT NULL," +
+  "relayed BIGINT NOT NULL," +
+  "txns int NOT NULL)";
   /** Create SQL Table */
   function createSQL(){
     Minima.sql(INITSQL, function(resp){
@@ -13,21 +21,34 @@
   });
   }
 
-  var INSERT = "INSERT INTO txpowlist VALUES ('"
+  var ADDBLOCKQUERY = "INSERT INTO txpowlist VALUES ('"
   function addTxPoW(txpow) {
     
     var isblock = 0;
-    if(txpow.isblock) {
+    if (txpow.isblock) {
       isblock = 1;
     }
     // wipe out mmrproofs and signatures for lighter txpows.. 
     txpow.body.witness.signatures = {};
     txpow.body.witness.mmrproofs = {};
-
-    Minima.sql(INSERT+JSON.stringify(txpow)+"', '"+txpow.header.block+"', '"+txpow.txpowid+"', '"+isblock+"', '"+txpow.header.timesecs+"', '"+txpow.body.txnlist.length+"')", function(res){
+       
+    Minima.sql(ADDBLOCKQUERY +
+      encodeURIComponent(JSON.stringify(txpow)) + /** TXPOW */
+      "', " +
+      parseInt(txpow.header.block) + /** HEIGHT */
+      ", '" +
+      txpow.txpowid + /** HASH */
+      "', '" +
+      isblock + /** isblock */
+      "', " +
+      parseInt(txpow.header.timemilli) /** relayed */
+      + ", '"
+      + txpow.body.txnlist.length + /** txns */
+      "')", function(res){
       if(res.status == true) 
-      { 
-        //Minima.log("TxPoW Added To SQL Table.. ");
+      {
+        // Minima.log(app + ': timemilli'+txpow.header.timemilli);
+        // Minima.log("TxPoW Added To SQL Table.. ");
       }
     });
   }
@@ -69,8 +90,8 @@ Minima.init(function(msg){
       addTxPoW(msg.info.txpow);
 
       pruneData(msg.info.txpow.header.block);
-        
-    } 
+      
+    }
 });
  
 
