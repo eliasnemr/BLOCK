@@ -8282,5 +8282,14 @@ body.dark #dropdown1 li:hover a {
   background-color: rgb(145,145,157)!important;
   color: #fff;
 }
+body.dark #dropdown1 li#h2Size {
+  cursor: auto;
+  background-color: #052741;
+  color: #fff;
+}
+body.dark 
+  #dropdown1 li#h2Size h6 span {
+    color: #FAFAF0;
+}
 
 /*# sourceMappingURL=style.css.map */

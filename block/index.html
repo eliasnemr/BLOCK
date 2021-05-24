@@ -40,6 +40,10 @@
           title: "TxPoW", 
           field: "TXPOW", 
           visible: false,
+          formatter: function(cell, formatterParams) {
+            var txpowLen = cell.getData().TXPOW.length;
+            var txpow = cell.getData().TXPOW;
+          },
         },
         {
           title: 'Height', 
@@ -214,7 +218,7 @@ function copy(id) {
       } 
 
       Minima.init(function(msg){
-        if (msg.event == 'connected'){
+        if (msg.event == 'connected') {
           $('#checkbox').on("change", function(res){
 
             const preference = {
@@ -234,6 +238,17 @@ function copy(id) {
                 Minima.file.save(json, "userPreference.txt", function(res){});
             }
           });
+          function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+        
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+          }
           // dark mode
           Minima.file.load("userPreference.txt", function(res){
             if(res.success){
@@ -251,8 +266,7 @@ function copy(id) {
 
           });
           // init dropdown
-          $('.dropdown-trigger').dropdown({coverTrigger: false, onCloseEnd: function(){
-
+          $('.dropdown-trigger').dropdown({coverTrigger: false, onCloseEnd: function() {
                 Minima.file.load("prune.txt", function(res){
                   if(res.success){
                     var pruning = JSON.parse(res.data);
@@ -287,6 +301,14 @@ function copy(id) {
                 });
               },
               onOpenStart: function() {
+                Minima.file.list('/_sqldb.mv.db', function(res) {
+                  // console.log(res);
+                  if (res.exists) {
+                    const size = formatBytes(res.size, 2);
+                    $('#h2Size span').text(''+size);
+                  };
+                });
+
                 Minima.file.load("prune.txt", function(res){
                   if(res.success){
                     var pruning = JSON.parse(res.data);
@@ -327,7 +349,8 @@ function copy(id) {
             // console.log(app + ': fetching all previous blocks saved on SQL.');
             // console.log(res);
             if (res.status) {
-              $.each(res.response.rows, function(i, el){
+              
+              $.each(res.response.rows, function(i, el) {
                 table.addRow(el);
               });
             }
@@ -459,6 +482,9 @@ function copy(id) {
             <li><a id="777600" onclick="setPrune('777600')" href="#!">6 months</a></li>
             <li><a id="1555200" onclick="setPrune('1555200')" href="#!">A year</a></li>
             <li><a id="Everything" onclick="setPrune('Everything')" href="#!">Keep all</a></li>
+            <li id="h2Size">
+              <h6>Size: <span id="size">n/a</span></h6>
+            </li>
           </ul>
         </div>
       </div>
@@ -467,25 +493,34 @@ function copy(id) {
   
 
   <!-- Body INFO -->
-  <div id="content"> 
-      <div class="row">
-        <div id="search-title-col" class="col s12">
-          <h5>Discover the heaviest leaf in the chain and traverse through.</h5>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col s12">
-          <div id="search-wrapper">
-            <input id="search-input" class="tooltipped" placeholder="Search by address, coinid or tokenid" type="text" data-html="true" data-position="top" data-tooltip="Address, block number, coin id..">
-            <i id="searchBtn" class="material-icons search">search</i>
+  <div class="content-wrap">
+    <div id="content"> 
+        <div class="row">
+          <div id="search-title-col" class="col s12">
+            <h5>Discover the heaviest leaf in the chain and traverse through.</h5>
           </div>
         </div>
-      </div>
-
-    <!-- TABULATOR - BLOCKS table -->
-    <div class="row">
-      <div class="col s12" style="padding-right:0;">
-        <div id="example-table"></div>
+        <div class="row">
+          <div class="col s12">
+            <div id="search-wrapper">
+              <input 
+              id="search-input" 
+              class="tooltipped" 
+              placeholder="Search by address, coinid or tokenid" 
+              type="text" 
+              data-html="true" 
+              data-position="top" 
+              data-tooltip="Address, block number, coin id..">
+              <i id="searchBtn" class="material-icons search">search</i>
+            </div>
+          </div>
+        </div>
+  
+      <!-- TABULATOR - BLOCKS table -->
+      <div class="row">
+        <div class="col s12" style="padding-right:0;">
+          <div id="example-table"></div>
+        </div>
       </div>
     </div>
   </div>

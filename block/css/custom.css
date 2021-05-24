@@ -72,7 +72,7 @@
   }
   .dropdown-trigger label i {
     vertical-align: middle;
-    font-size: 2.5rem;
+    font-size: 20px;
   }
   #dropdown1 li a {
     color: #317AFF;
@@ -133,16 +133,20 @@
   nav {
     background-color: #031D32;
   }
+  div.content-wrap {
+    position: absolute;
+    top: 200px;
+    padding-bottom: 200px;
+    left: 35px;
+    right: 35px;
+  }
   #content {
-    margin-top: 200px;
-    margin-bottom: 200px;
-    margin-left: 55px;
-    margin-right: 55px;
+    width: 100%;
   }
   @media only screen and (min-width: 992px) {
-    #content {
-      margin-left: 135px;
-      margin-right: 135px;
+    div.content-wrap {
+      left: 135px;
+      right: 135px;
     }
   }
   #example-table {
@@ -153,17 +157,22 @@
   }
   #search-wrapper input {
     display: block;
-    background-color: #fff !important;
+    background-color: #fff;
+    border-radius: 15px;
     border:none;
     line-height: 0;
     height: 35px;
     text-align: left;
-    padding-left: 1%;
+    padding-left: 15px;
   }
   #search-wrapper .search {
     position: absolute;
     top: 5px;
     right:0;
+  }
+  #search-wrapper input:focus {
+    outline: none;
+    border: none;
   }
   #content h5 {
     font-family: manrope-bold !important;
@@ -639,6 +648,21 @@
   }
   #lastsocial {
     padding-right: 0!important;
+  }
+
+  #h2Size {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 15px;
+  }
+  #h2Size h6 {
+    margin: 0;
+    color: #0279FF;
+  }
+  #h2Size h6 span {
+    font-size: 14px;
+    color: #001C32;
   }
 
   

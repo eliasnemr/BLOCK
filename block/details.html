@@ -14,6 +14,7 @@
 
 <body>
 <script type="text/javascript">
+  const app = 'Block';
     $(document).ready(function(){
       Minima.init(function(msg){
         if(msg.event == "connected") {
@@ -61,7 +62,7 @@
           var markup = 
             '<div id="notfound" class="row center">'+ 
             '<div class="col s12">'+
-              '<p>' + app +': failed to make SQL call!<p>'+
+              '<p>Failed to make SQL Query, please try again.<p>'+
             '</div>'+
             '</div>'+
             '<br>'+
@@ -295,7 +296,9 @@ function loadDetails(data) {
 </header>
   
   <!-- Details BODY INFO -->
-  <div id="content"></div>
+  <div class="content-wrap">
+    <div id="content"></div>
+  </div>
 
   <footer>
     <div class="container">
