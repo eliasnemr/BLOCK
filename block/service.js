@@ -8,10 +8,13 @@
   "hash VARCHAR(160) NOT NULL," +
   "isblock int NOT NULL," +
   "relayed BIGINT NOT NULL," +
-  "txns int NOT NULL)";
+  "txns int NOT NULL" +
+  ")";
+  var INDEX = "CREATE INDEX IDXHASH ON txpowlist(hash)";
+  var INDEXHEIGHT = "CREATE INDEX IDXHEIGHT ON txpowlist(height DESC)";
   /** Create SQL Table */
   function createSQL(){
-    Minima.sql(INITSQL, function(resp){
+    Minima.sql(INITSQL+";"+INDEX+";"+INDEXHEIGHT, function(resp){
       if(!resp.status){
         Minima.log(app + ': error in SQL call.');
       } 
@@ -25,6 +28,12 @@
     if (txpow.isblock) {
       isblock = 1;
     }
+
+    if (!txpow.body) {
+      Minima.log('txpow body not found!');
+      return;
+    }
+
     // wipe out mmrproofs and signatures for lighter txpows.. 
     txpow.body.witness.signatures = {};
     txpow.body.witness.mmrproofs = {};

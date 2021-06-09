@@ -18,6 +18,48 @@
     $(document).ready(function(){
       Minima.init(function(msg){
         if(msg.event == "connected") {
+          var txpow_ = Minima.form.getParams("txpow");
+    
+          Minima.sql("SELECT * FROM txpowlist WHERE HASH = '"+txpow_+"'", function(res){
+            // console.log(res);
+            if(res.response.status && res.response.rows.length > 0) {
+              loadDetails(res);
+            } else if(res.response.status && res.response.rows.length == 0) {
+              // alert div 
+              var markup =
+               '<div id="notfound" class="row center">'+ 
+                '<div class="col s12">'+
+                  '<p>Transaction details not found in your local database.<p>'+
+                '</div>'+
+                '</div>'+
+                '<br>'+
+                '<div id="notfound" class="row center">'+
+                '<div class="col s12">'+
+                  '<a id="backBtn" class="backBtn btn-small btn-flat">Back To Explorer<p>'+
+                '</div>'+
+                '</div>';
+    
+              $('#content').append(markup);
+              $('#nav-wrapper').addClass('hide');
+            } else {
+              // alert div 
+              var markup = 
+                '<div id="notfound" class="row center">'+ 
+                '<div class="col s12">'+
+                  '<p>Failed to make SQL Query, please try again.<p>'+
+                '</div>'+
+                '</div>'+
+                '<br>'+
+                '<div id="notfound" class="row center">'+
+                '<div class="col s12">'+
+                  '<a id="backBtn" class="backBtn btn-small btn-flat">Back To Explorer<p>'+
+                '</div>'+
+                '</div>';
+              
+                $('#content').append(markup);
+                $('#nav-wrapper').addClass('hide');
+            }
+          });
           // dark mode
           Minima.file.load("userPreference.txt", function(res){
           if(res.success){
@@ -28,54 +70,12 @@
             } else if(preference.mode == "light"){
               $('body').removeClass("dark");  
             }
-        }
-      });
-        }
+          }
+        });
+      }
 
       });
 
-      var txpow_ = Minima.form.getParams("txpow");
-
-      Minima.sql("SELECT * FROM txpowlist WHERE HASH = '"+txpow_+"'", function(res){
-        // console.log(res);
-        if(res.response.status && res.response.rows.length > 0) {
-          loadDetails(res);
-        } else if(res.response.status && res.response.rows.length == 0) {
-          // alert div 
-          var markup =
-           '<div id="notfound" class="row center">'+ 
-            '<div class="col s12">'+
-              '<p>Transaction details not found in your local database.<p>'+
-            '</div>'+
-            '</div>'+
-            '<br>'+
-            '<div id="notfound" class="row center">'+
-            '<div class="col s12">'+
-              '<a id="backBtn" class="backBtn btn-small btn-flat">Back To Explorer<p>'+
-            '</div>'+
-            '</div>';
-
-          $('#content').append(markup);
-          $('#nav-wrapper').addClass('hide');
-        } else {
-          // alert div 
-          var markup = 
-            '<div id="notfound" class="row center">'+ 
-            '<div class="col s12">'+
-              '<p>Failed to make SQL Query, please try again.<p>'+
-            '</div>'+
-            '</div>'+
-            '<br>'+
-            '<div id="notfound" class="row center">'+
-            '<div class="col s12">'+
-              '<a id="backBtn" class="backBtn btn-small btn-flat">Back To Explorer<p>'+
-            '</div>'+
-            '</div>';
-          
-            $('#content').append(markup);
-            $('#nav-wrapper').addClass('hide');
-        }
-      });
 
       // tool info display
       $('.tooltipped').tooltip();
