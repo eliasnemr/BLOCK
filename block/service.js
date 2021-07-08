@@ -1,5 +1,6 @@
   const app = 'Block';
   const cryptocurrency = 'Minima';
+  var loop = false;
   // SQL to create the dB
   var INITSQL =
   "CREATE Table IF NOT EXISTS txpowlist ("+
@@ -14,14 +15,21 @@
   var INDEXHEIGHT = "CREATE INDEX IDXHEIGHT ON txpowlist(height DESC)";
   /** Create SQL Table */
   function createSQL(){
-    Minima.sql(INITSQL+";"+INDEX+";"+INDEXHEIGHT, function(resp){
-      if(!resp.status){
-        Minima.log(app + ': error in SQL call.');
-      } 
-  });
+    Minima.file.load('createSql.txt', function (res) {
+      if (!res.success) {
+        Minima.sql(INITSQL+";"+INDEX+";"+INDEXHEIGHT, function(resp){
+          Minima.log(JSON.stringify(resp));
+          if(!resp.status){
+            Minima.log(app + ': ERROR in SQL call!');
+          }  else {
+            Minima.file.save('', 'createSql.txt', function (res) {});
+          }
+        });
+      }
+    });
   }
 
-  var ADDBLOCKQUERY = "INSERT INTO txpowlist VALUES ('"
+  var ADDBLOCKQUERY = "INSERT INTO txpowlist VALUES (\'"
   function addTxPoW(txpow) {
     
     var isblock = 0;
@@ -40,19 +48,18 @@
        
     Minima.sql(ADDBLOCKQUERY +
       encodeURIComponent(JSON.stringify(txpow)) + /** TXPOW */
-      "', " +
+      "\'," +
       parseInt(txpow.header.block) + /** HEIGHT */
-      ", '" +
+      ", \'" +
       txpow.txpowid + /** HASH */
-      "', '" +
+      "\', " +
       isblock + /** isblock */
-      "', " +
-      parseInt(txpow.header.timemilli) /** relayed */
-      + ", '"
+      "," +
+      txpow.header.timemilli /** relayed */
+      + ","
       + txpow.body.txnlist.length + /** txns */
-      "')", function(res){
-      if(res.status == true) 
-      {
+      ")", function(res) {
+      if (res.status) {
         // Minima.log(app + ': timemilli'+txpow.header.timemilli);
         // Minima.log("TxPoW Added To SQL Table.. ");
       }
@@ -93,7 +100,7 @@
         createSQL();
     
       } else if(msg.event == 'newtxpow') {
-      
+
         addTxPoW(msg.info.txpow);
 
         pruneData(msg.info.txpow.header.block);
