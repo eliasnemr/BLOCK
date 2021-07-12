@@ -215,7 +215,10 @@
       margin-right: 150px;
     }
   }
-
+  .tabulator {
+    background-color: transparent!important;
+    background: transparent!important;
+  }
   .tabulator-tableHolder {
     background-color: #F0F0F9 !important; 
     overflow:visible !important;
