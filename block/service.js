@@ -3,13 +3,13 @@
   var loop = false;
   // SQL to create the dB
   var INITSQL =
-  "CREATE Table IF NOT EXISTS txpowlist ("+
+  "CREATE Table IF NOT EXISTS TXPOWLIST ("+
   "txpow VARCHAR(16000) NOT NULL," + 
   "height BIGINT NOT NULL," +
   "hash VARCHAR(160) NOT NULL," +
-  "isblock int NOT NULL," +
+  "isblock INT NOT NULL," +
   "relayed BIGINT NOT NULL," +
-  "txns int NOT NULL" +
+  "txns INT NOT NULL" +
   ")";
   var INDEX = "CREATE INDEX IDXHASH ON txpowlist(hash)";
   var INDEXHEIGHT = "CREATE INDEX IDXHEIGHT ON txpowlist(height DESC)";
@@ -29,43 +29,52 @@
     });
   }
 
-  var ADDBLOCKQUERY = "INSERT INTO txpowlist VALUES (\""
+  var ADDBLOCKQUERY = "INSERT INTO txpowlist VALUES (\'"
   function addTxPoW(txpow) {
-    
-    var isblock = 0;
-    if (txpow.isblock) {
-      isblock = 1;
-    }
-
-    if (!txpow.body) {
-      Minima.log('txpow body not found!');
-      return;
-    }
-
-    // wipe out mmrproofs and signatures for lighter txpows.. 
-    txpow.body.witness.signatures = {};
-    txpow.body.witness.mmrproofs = {};
-
-
-       
-    Minima.sql(ADDBLOCKQUERY +
-      encodeURIComponent(JSON.stringify(txpow)) + /** TXPOW */
-      "\"," +
-      parseInt(txpow.header.block) + /** HEIGHT */
-      ", \"" +
-      txpow.txpowid + /** HASH */
-      "\", " +
-      isblock + /** isblock */
-      "," +
-      txpow.header.timemilli /** relayed */
-      + ","
-      + txpow.body.txnlist.length + /** txns */
-      ")", function(res) {
-      if (res.status) {
-        // Minima.log(app + ': timemilli'+txpow.header.timemilli);
-        // Minima.log("TxPoW Added To SQL Table.. ");
+    const txPoWSize = JSON.stringify(txpow.size);
+    const txPowHeight = JSON.stringify(txpow.header.block);
+    const txPoWMaxSize = 16000;
+    if (txPoWSize > txPoWMaxSize) {
+      Minima.log(
+        app + 
+        ': Transaction at height: ' + txPowHeight + 
+        ' with size:' + txPoWSize + 
+        ' is too big for database column.');
+      var isblock = 0;
+      if (txpow.isblock) {
+        isblock = 1;
       }
-    });
+  
+      if (!txpow.body) {
+        Minima.log('txpow body not found!');
+        return;
+      }
+  
+      // wipe out mmrproofs and signatures for lighter txpows.. 
+      txpow.body.witness.signatures = {};
+      txpow.body.witness.mmrproofs = {};
+  
+      const filterQuotes = JSON.stringify(txpow).replace(/'/g, '%27');
+     
+      Minima.sql(ADDBLOCKQUERY +
+        encodeURIComponent(filterQuotes) + /** TXPOW */
+        "\'," +
+        parseInt(txpow.header.block) + /** HEIGHT */
+        ", \'" +
+        txpow.txpowid + /** HASH */
+        "\', " +
+        isblock + /** isblock */
+        "," +
+        txpow.header.timemilli /** relayed */
+        + ","
+        + txpow.body.txnlist.length + /** txns */
+        ")", function(res) {
+        if (res.status) {
+          // Minima.log(app + ': timemilli'+txpow.header.timemilli);
+          // Minima.log("TxPoW Added To SQL Table.. ");
+        }
+      });
+    }
   }
   
   function pruneData(height) {
@@ -110,5 +119,3 @@
       }
   });
  
-
-
